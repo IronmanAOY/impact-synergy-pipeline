@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/975114052.svg)](https://doi.org/10.5281/zenodo.15306740)
+
 # IMPACT Synergy Pipeline
 
 Reproduces all analyses for “Parameter Sensitivity and Pilot Simulation of Synergy Metrics.”
@@ -55,4 +57,10 @@ License: MIT
 ## Cite this repository
 
 Anthony Obiri-Yeboah (2025). *IMPACT Synergy Pipeline* (v1.0.0).  
-DOI: [pending]  
+DOI: 10.5281/zenodo.15306741
+
+## Related publication
+
+Obiri-Yeboah, A. (in prep).  
+**IMPACT: Integrated Minimal Principles Accounting for Consciousness Theory**.  
+
