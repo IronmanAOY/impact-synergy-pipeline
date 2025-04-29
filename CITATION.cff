@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Obiri-Yeboah
+    given-names: Anthony
+    affiliation: "PhD Candidate, Technische Universität Dresden"
+title: "IMPACT Synergy Pipeline"
+version: "1.0.0"
+date-released: 2025-04-29
+doi: "10.5281/zenodo.YYY"  # tbd
