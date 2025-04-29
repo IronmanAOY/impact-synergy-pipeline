@@ -52,3 +52,7 @@ python run_pipeline.py --out-dir outputs
 ```
 Outputs in `outputs/`. See `docs/metrics.md` for equations. 
 License: MIT
+## Cite this repository
+
+Anthony Obiri-Yeboah (2025). *IMPACT Synergy Pipeline* (v1.0.0).  
+DOI: [pending]  
