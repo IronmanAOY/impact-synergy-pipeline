@@ -1,0 +1,20 @@
+name: CI
+on: [push,pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          activate-environment: impact-synergy
+      - name: Install Node CLI
+        run: npm install -g @openneuro/cli@2.0.1
+      - name: Lint
+        run: |
+          flake8 .
+          black --check .
+      - name: Test
+        run: pytest -q --disable-warnings --maxfail=1
