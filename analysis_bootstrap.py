@@ -1,9 +1,16 @@
 import numpy as np
-from sklearn.utils import resample
+from sklearn.utils import resample  # noqa: F401
 from sklearn.metrics import roc_auc_score
 
-def bootstrap_ci(df, score_col, session_col='session', sessions=('awake','sedation'),
-                 n_boot=1000, random_state=None):
+
+def bootstrap_ci(
+    df,
+    score_col,
+    session_col="session",
+    sessions=("awake", "sedation"),
+    n_boot=1000,
+    random_state=None,
+):
     # map sessions to binary
     y = (df[session_col] == sessions[1]).astype(int).to_numpy()
     scores = df[score_col].to_numpy()
@@ -18,8 +25,15 @@ def bootstrap_ci(df, score_col, session_col='session', sessions=('awake','sedati
     lo, hi = np.percentile(aucs, [2.5, 97.5])
     return lo, hi
 
-def permutation_test_auc(df, score_col, session_col='session', sessions=('awake','sedation'),
-                         n_perm=10000, random_state=None):
+
+def permutation_test_auc(
+    df,
+    score_col,
+    session_col="session",
+    sessions=("awake", "sedation"),
+    n_perm=10000,
+    random_state=None,
+):
     y = (df[session_col] == sessions[1]).astype(int).to_numpy()
     scores = df[score_col].to_numpy()
     obs_auc = roc_auc_score(y, scores)
