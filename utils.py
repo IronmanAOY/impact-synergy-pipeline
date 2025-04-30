@@ -33,19 +33,19 @@ class HypergraphSynergy:
         return 1 - abs(Wl-Wg)/(Wl+Wg) if (Wl+Wg)>0 else 0.0
 
 def compute_midrank(x):
+    x = np.asarray(x, dtype=float)
     sorted_idx = np.argsort(x)
     T = x[sorted_idx]
     n = len(x)
-    mid = np.zeros(n)
+    mid = np.zeros(n, dtype=float)
     i = 0
-    while i<n:
-        j=i
-        while j<n and T[j]==T[i]:
-            j+=1
-        for k in range(i,j):
-            mid[k] = 0.5*(i+j-1)
-        i=j
-    ret = np.empty(n)
+    while i < n:
+        j = i
+        while j < n and T[j] == T[i]:
+            j += 1
+        mid[i:j] = 0.5 * (i + j - 1)
+        i = j
+    ret = np.empty(n, dtype=float)
     ret[sorted_idx] = mid
     return ret
 

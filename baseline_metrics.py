@@ -5,10 +5,10 @@ import logging
 
 log = logging.getLogger(__name__)
 
-def mean_conn(ts):
-    corr = np.corrcoef(ts.T)
-    iu = np.triu_indices(corr.shape[0], k=1)
-    return np.mean(np.abs(corr[iu]))
+def mean_conn(ts: np.ndarray) -> float:
+    n = ts.shape[0]
+    mask = ~np.eye(n, dtype=bool)
+    return ts[mask].mean()
 
 def modularity(ts, threshold=0.2):
     corr = np.corrcoef(ts.T)
