@@ -15,8 +15,8 @@ jobs:
         with:
           environment-file: environment.yml
           activate-environment: impact-synergy
-      - name: Install OpenNeuro CLI
-        run: conda install -y -c conda-forge openneuro-cli
+     # - name: Install OpenNeuro CLI
+     #   run: conda install -y -c conda-forge openneuro-cli
       - name: Lint
         run: |
           flake8 .
