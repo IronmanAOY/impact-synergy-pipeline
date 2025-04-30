@@ -5,22 +5,31 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v3
+
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v2
         with:
           environment-file: environment.yml
           activate-environment: impact-synergy
-     # - name: Install OpenNeuro CLI
-     #   run: conda install -y -c conda-forge openneuro-cli
+
+      # ensure flake8/black are present
+      - name: Install lint tools
+        run: conda install -y flake8 black
+
       - name: Lint
         run: |
           flake8 .
           black --check .
+
       - name: Test
         run: pytest -q --disable-warnings --maxfail=1
-
