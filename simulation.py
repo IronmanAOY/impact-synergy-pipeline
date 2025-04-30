@@ -1,7 +1,12 @@
 import numpy as np
 from scipy.integrate import odeint
 from metrics import compute_synergy_metrics 
+from scripts.load_connectome import load_connectome
 import os
+
+C = load_connectome("data/structural/budapest_reference_connectome_v3.0.csv")
+C = C / C.sum(axis=1, keepdims=True)  # row-normalize
+assert C.shape == (1015, 1015)
 
 def windkessel(state, t, u, tau_s, tau_f, tau_0, alpha, E0):
     """
@@ -18,7 +23,11 @@ def windkessel(state, t, u, tau_s, tau_f, tau_0, alpha, E0):
     # Volume change
     dv = (f - v ** (1/alpha)) / tau_0
     # Deoxyhemoglobin change
-    dq = (f * (1 - (1 - E0) ** (1 / f)) / E0 - q * v ** (1/alpha - 1)) / tau_0
+    eps = 1e-6
+    inv_f = 1.0 / (f + eps)
+    dq = (f * (1 - (1 - E0) ** inv_f) / E0
+          - q * (v + eps) ** (1/alpha - 1)) / tau_0
+
     return np.concatenate([ds, df, dv, dq])
 
 def simulate_bold(N, T, dt, connectivity, params):
@@ -30,7 +39,13 @@ def simulate_bold(N, T, dt, connectivity, params):
     times = np.arange(0, T, dt)
     G = params['G']
     E0 = params['E0']
-    state0 = np.zeros(4*N)
+    state0 = np.concatenate([
+        np.zeros(N),    # baseline vasodilatory signal
+        np.ones(N),     # flow = 1
+        np.ones(N),     # volume = 1
+        np.ones(N)      # deoxyhemoglobin = 1
+    ])
+
     bold = np.zeros((len(times), N))
     state = state0.copy()
 
