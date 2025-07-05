@@ -10,6 +10,8 @@ Reproduces all analyses for “Parameter Sensitivity and Pilot Simulation of Syn
 conda env create -f environment.yml
 conda activate impact-synergy
 ```
+## Atlases
+We fetch Schaefer-400 and AAL automatically, but you must manually download Shen-268 (1 mm) into `atlases/shen_1mm_268_parcellation.nii.gz`.  
 
 ## Host Prerequisites
 - Node ≥14 + npm (for download_data.sh)
@@ -19,10 +21,11 @@ conda activate impact-synergy
   - Ubuntu: sudo apt-get update && sudo apt-get install -y nodejs npm
 
 - Docker (for FMRIPrep containers)
+- FreeSurfer (install via Homebrew, apt, or from https://freesurfer.net)
 
 ## Data Download
 ```bash
-download_data.sh
+download_data.sh  # grabs 17-subject ds003171 snapshot
 ```
 Or in Docker:
 ```bash
@@ -53,7 +56,15 @@ Note: We call `BIDSLayout(validate=False)`; run `bids-validator` separately for 
 python run_pipeline.py --out-dir outputs
 ```
 Outputs in `outputs/`. See `docs/metrics.md` for equations. 
-License: MIT
+License: MIT 
+## Cleaning & ROI Extraction
+Once fMRIPrep is done, generate cleaned time-series and meanFD by:
+```bash
+python - <<'PYCODE'
+from preprocessing import run_preprocessing
+run_preprocessing('outputs/fmriprep/fmriprep', 'test_outputs/preprocessed')
+PYCODE``
+
 ## Cite this repository
 
 Anthony Obiri-Yeboah (2025). *IMPACT Synergy Pipeline* (v1.0.0).  

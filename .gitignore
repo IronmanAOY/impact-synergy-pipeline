@@ -172,3 +172,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+data/ds003171/
+outputs/fmriprep/fmriprep/
+freesurfer-macOS-darwin_arm64-8.0.0.pkg
+test_outputs/preprocessed
