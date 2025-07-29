@@ -22,6 +22,7 @@ We fetch Schaefer-400 and AAL automatically, but you must manually download Shen
 
 - Docker (for FMRIPrep containers)
 - FreeSurfer (install via Homebrew, apt, or from https://freesurfer.net)
+- you need Nilearn ≥ 0.11 (to get fetch_atlas_schaefer_2018) but note that Tedana may conflict if you bump to 0.12.
 
 ## Data Download
 ```bash
@@ -63,7 +64,7 @@ Once fMRIPrep is done, generate cleaned time-series and meanFD by:
 python - <<'PYCODE'
 from preprocessing import run_preprocessing
 run_preprocessing('outputs/fmriprep/fmriprep', 'test_outputs/preprocessed')
-PYCODE``
+PYCODE```
 
 ## Cite this repository
 

@@ -1,180 +1,172 @@
 import os
 import glob
 import logging
+import warnings
+import re
+
 import numpy as np
 import pandas as pd
 from bids import BIDSLayout
 from nilearn import image
 from nilearn.input_data import NiftiLabelsMasker
 from nilearn.signal import clean
-from pathlib import Path
-import warnings
 import nibabel as nib
+from nilearn.datasets import fetch_atlas_schaefer_2018, fetch_atlas_aal
 
 log = logging.getLogger(__name__)
 
+# Download once and save into atlases/s
+atlas_sch = fetch_atlas_schaefer_2018(
+    n_rois=400,
+    yeo_networks=7,
+    data_dir='atlases',
+    resume=True
+)
+atlas_aal = fetch_atlas_aal(
+    data_dir='atlases',
+    resume=True
+)
+
+# point to your manually downloaded Shen-268 map:
+atlas_shen_map = os.path.abspath('atlases/shen_1mm_268_parcellation.nii.gz')
+
 ATLAS_GLOBS = {
-    "schaefer400": "atlases/Schaefer*400Parcels*.nii*",
-    "aal90": "atlases/AAL/*.nii*",
-    "shen268": "atlases/shen*268*.nii*",
+    "schaefer400": atlas_sch["maps"],
+    "aal90":       atlas_aal.maps,
+    "shen268":     atlas_shen_map,
 }
 
 
-def collect_confounds(layout, subject, session):
-    compcor = None
-    fd = 0.0
-
-    # 1) CompCor
+def find_atlas(key):
     try:
-        confs = layout.get(
-            subject=subject,
-            session=session,
-            suffix="bold",
-            desc="preproc",
-            extension="tsv",
-            return_type="object",
-        )
-    except Exception:
-        confs = []
+        return ATLAS_GLOBS[key]
+    except KeyError:
+        raise FileNotFoundError(f"No atlas entry for {key}")
 
-    if confs:
-        tsv_path = Path(confs[0].path)
-        try:
-            df = pd.read_csv(tsv_path, sep="\t")
-            compcor_cols = [c for c in df.columns if "compcor" in c.lower()]
-            if compcor_cols:
-                compcor = df[compcor_cols].values
-            else:
-                warnings.warn(f"No CompCor columns found in {tsv_path}")
-        except Exception as e:
-            warnings.warn(f"Could not read confounds TSV {tsv_path}: {e}")
-    else:
-        warnings.warn(f"No confounds TSV found for sub-{subject} ses-{session}")
+def collect_confounds(bids_root, fmriprep_deriv, subj, run_no, task):
+    func_dir = os.path.join(fmriprep_deriv, f"sub-{subj}", "func")
+    pattern = os.path.join(
+        func_dir,
+        f"sub-{subj}_task-{task}_run-*_desc-confounds*timeseries.tsv"
+    )
+    candidates = glob.glob(pattern)
+    if not candidates:
+        warnings.warn(f"No confounds files found at {pattern}")
+        return None, 0.0
 
-    # 2) Mean FD
-    try:
-        bids_root = getattr(layout, "root")
-        fd_tsv = (
-            Path(bids_root)
-            / f"sub-{subject}"
-            / f"ses-{session}"
-            / f"sub-{subject}_ses-{session}_desc-confounds_regressors.tsv"
-        )
-        df_fd = pd.read_csv(fd_tsv, sep="\t")
-        if "framewise_displacement" in df_fd.columns:
-            fd = df_fd["framewise_displacement"].mean()
-        else:
-            warnings.warn(f"No FD column in {fd_tsv}")
-    except Exception:
-        # catches both missing layout.root and missing file/column
-        warnings.warn(
-            f"Could not read FD for sub-{subject} ses-{session}; " "falling back to 0.0"
-        )
+    # filter to the one whose run-index == run_no
+    sel = []
+    for f in candidates:
+        m = re.search(r"_run-0*(\d+)_desc", os.path.basename(f))
+        if m and int(m.group(1)) == run_no:
+            sel.append(f)
 
+    if len(sel) > 1:
+        warnings.warn(f"Multiple confound files for sub-{subj} run-{run_no}: {sel}\n  Picking the first.")
+    if not sel:
+        warnings.warn(f"No confounds TSV for sub-{subj} task-{task} run-{run_no}")
+        return None, 0.0
+
+    conf_file = sel[0]
+    df = pd.read_csv(conf_file, sep="\t")
+
+    compcor_cols = [c for c in df.columns if "compcor" in c.lower()]
+    compcor = df[compcor_cols].values if compcor_cols else None
+    fd = df["framewise_displacement"].mean() if "framewise_displacement" in df.columns else 0.0
     return compcor, fd
 
 
-def find_atlas(key):
-    files = glob.glob(ATLAS_GLOBS[key])
-    if not files:
-        log.warning(f"No atlas file found (pattern {ATLAS_GLOBS[key]})")
-        raise FileNotFoundError(f"No atlas for {key}")
-    return files[0]
-
-
-def preprocess_subject(bids_root, subj, ses, out_dir):
+def preprocess_subject(bids_root, fmriprep_deriv, subj, bf, out_dir):
     """
-    Preprocess a single subject/session:
-      1. Load preprocessed BOLD
-      2. Load CompCor regressors and mean FD (falling back to None/0)
-      3. Clean (filter, detrend, standardize)
-      4. Save cleaned NIfTI (with TypeError fallback)
-      5. Write mean FD
-      6. Extract and save atlas timecourses
-
-    Parameters
-    ----------
-    bids_root : str
-        Path to BIDS dataset root.
-    subj : str
-        Subject label (without 'sub-').
-    ses : str
-        Session label (without 'ses-').
-    out_dir : str
-        Directory in which to write outputs.
+    Preprocess one bold run (bf is a BIDSLayoutFile object).
+    Outputs cleaned NIfTI, mean_fd.txt, and ROI‐TS .npy files.
     """
-    layout = BIDSLayout(bids_root, validate=False)
-    try:
-        bold_path = layout.get(
-            subject=subj, session=ses, suffix="desc-preproc_bold", extension="nii.gz"
-        )[0].path
-    except IndexError:
-        log.warning(f"No preprocessed BOLD for sub-{subj} ses-{ses}")
-        return
+    # 1) Bold path & run number
+    bold_path = bf.path
+    run_no    = int(bf.entities.get("run", 0))
 
-    compcor, fd = collect_confounds(layout, subj, ses)
+    # 2) load confounds
+    task   = bf.entities['task']
+    run_no = int(bf.entities['run'])
+    compcor, fd = collect_confounds(
+        bids_root=bids_root,
+        fmriprep_deriv=fmriprep_deriv,
+        subj=subj,
+        run_no=run_no,
+        task=task
+    )
+
+    # 3) load & clean BOLD
     img = image.load_img(bold_path)
-    tr = float(img.header.get_zooms()[-1])
+    tr  = img.header.get_zooms()[-1]
     if tr > 10:
-        log.warning(f"Suspicious TR={tr}, falling back to 2.0s")
+        log.warning(f"Suspicious TR={tr}, using 2.0s")
         tr = 2.0
 
-    # flatten to time × voxels, clean, then reshape back to 4D
     data = img.get_fdata().reshape(-1, img.shape[-1]).T
     cleaned = clean(
         signals=data,
         confounds=compcor,
-        standardize=True,
+        t_r=tr,
         detrend=True,
+        standardize=True,
         low_pass=0.1,
         high_pass=0.01,
-        t_r=tr,
     ).T
     cleaned_vol = cleaned.reshape(img.shape)
 
+    # 4) save cleaned NIfTI
     os.makedirs(out_dir, exist_ok=True)
-    cleaned_fn = os.path.join(out_dir, f"{subj}_{ses}_cleaned_bold.nii.gz")
-
+    clean_fn = os.path.join(out_dir, f"{subj}_run-{run_no}_cleaned_bold.nii.gz")
     try:
-        image.new_img_like(img, cleaned_vol).to_filename(cleaned_fn)
+        image.new_img_like(img, cleaned_vol).to_filename(clean_fn)
     except TypeError:
-        # DummyImg may lack .affine; fall back to nibabel
-        affine = getattr(img, "affine", None)
-        if affine is None:
-            affine = np.eye(4)
-        nib.Nifti1Image(cleaned_vol, affine).to_filename(cleaned_fn)
+        nib.Nifti1Image(cleaned_vol, img.affine).to_filename(clean_fn)
 
-    # write out mean FD
-    try:
-        mean_fd = float(np.mean(fd))
-    except Exception:
-        mean_fd = 0.0
-    with open(os.path.join(out_dir, "mean_fd.txt"), "w") as f:
-        f.write(str(mean_fd))
+    # 5) write mean FD
+    with open(os.path.join(out_dir, "mean_fd.txt"), "w") as fp:
+        fp.write(f"{fd:.6f}")
 
-    # now extract ROI time-series for each atlas (or fall back to empty)
-    for key in ATLAS_GLOBS:
-        try:
-            atlas_img = find_atlas(key)
-            masker = NiftiLabelsMasker(labels_img=atlas_img, standardize=True, t_r=tr)
-            # feed in the filename of the cleaned NIfTI
-            ts = masker.fit_transform(cleaned_fn)
-        except FileNotFoundError:
-            log.warning(f"No atlas for {key}, skipping ROI extraction")
-            # fallback to an empty (T × 0) array
-            n_tp = img.shape[-1]
-            ts = np.zeros((n_tp, 0), dtype=float)
+    # 6) eextract ROI time-series for each atlas
+    for key, atlas_img in ATLAS_GLOBS.items():
+        masker = NiftiLabelsMasker(labels_img=atlas_img,
+                                   standardize=True,
+                                   t_r=tr)
+        ts = masker.fit_transform(clean_fn)
 
-        out_fname = os.path.join(out_dir, f"{subj}_{ses}_{key}_ts.npy")
-        np.save(out_fname, ts)
+        np.save(os.path.join(out_dir, f"{subj}_run-{run_no}_{key}_ts.npy"), ts)
 
-
-def run_preprocessing(bids_root, out_root):
+def run_preprocessing(bids_root, fmriprep_deriv, out_root):
     layout = BIDSLayout(bids_root, validate=False)
-    subs = sorted({f.subject for f in layout.get(suffix="desc-preproc_bold")})
-    for subj in subs:
-        sessions = sorted(
-            {f.session for f in layout.get(subject=subj, suffix="desc-preproc_bold")}
+
+    # find all raw BOLD runs
+    subjects = sorted({f.subject for f in layout.get(suffix='bold',
+                                                      extension='nii.gz')})
+    for subj in subjects:
+        bold_files = layout.get(
+            subject=subj,
+            suffix='bold',
+            extension='nii.gz',
+            return_type='object'
         )
-        for ses in sessions:
-            preprocess_subject(bids_root, subj, ses, os.path.join(out_root, subj, ses))
+        for bf in bold_files:
+            task = bf.entities.get('task')
+            # only keep resting runs
+            if task == 'restawake':
+                cond = 'awake'
+            elif task == 'restdeep':
+                cond = 'deep'
+            elif task == 'restrecovery':
+                cond = 'recovery'
+            else:
+                # skip audio or other tasks
+                continue
+
+            out_dir = os.path.join(out_root, subj, cond)
+            preprocess_subject(
+                bids_root,
+                fmriprep_deriv,
+                subj,
+                bf,
+                out_dir
+            )

@@ -2,13 +2,22 @@ import os
 import numpy as np
 import networkx as nx
 import logging
+import glob
+import pandas as pd
 
 log = logging.getLogger(__name__)
 
 def mean_conn(ts: np.ndarray) -> float:
-    n = ts.shape[0]
-    mask = ~np.eye(n, dtype=bool)
-    return ts[mask].mean()
+    """
+    Compute the average off-diagonal Pearson correlation
+    across all ROIs in a time-series matrix ts
+    of shape (n_timepoints, n_rois).
+    """
+    # build correlation matrix between ROIs
+    corr = np.corrcoef(ts.T)            # shape (n_rois, n_rois)
+    n = corr.shape[0]
+    mask = ~np.eye(n, dtype=bool)      # off-diagonal mask
+    return corr[mask].mean()
 
 def modularity(ts, threshold=0.2):
     corr = np.corrcoef(ts.T)
@@ -28,12 +37,17 @@ def pci_fmri(ts):
     return len(patterns) / (2**ts.shape[1])
 
 def compute_baseline_metrics(df, data_dir, atlas):
-    import pandas as pd
     rows = []
     for _, r in df.iterrows():
-        fn = os.path.join(data_dir, r.subject, r.session,
-                          f"{r.subject}_{r.session}_{atlas}_ts.npy")
-        ts = np.load(fn)
+        pattern = os.path.join(
+            data_dir, r.subject, r.session,
+            f"{r.subject}_run-*_{atlas}_ts.npy"
+        )
+        candidates = sorted(glob.glob(pattern))
+        if not candidates:
+            raise FileNotFoundError(f"No TS file for {r.subject}/{r.session} under {pattern}")
+        ts = np.load(candidates[0])
+
         rows.append({
             **r.to_dict(),
             'mean_conn': mean_conn(ts),
