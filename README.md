@@ -57,7 +57,24 @@ Note: We call `BIDSLayout(validate=False)`; run `bids-validator` separately for 
 python run_pipeline.py --out-dir outputs
 ```
 Outputs in `outputs/`. See `docs/metrics.md` for equations. 
-License: MIT 
+License: MIT
+
+## KI-Ironman-Trainingscoach
+
+Dieses Repository enthält jetzt auch einen interaktiven Trainingscoach,
+der Athlet:innen Schritt für Schritt zur Ironman-Langdistanz begleitet.
+
+```bash
+python scripts/ironman_coach.py            # interaktive Eingabe
+python scripts/ironman_coach.py --demo     # Beispielplan ohne Rückfragen
+python scripts/ironman_coach.py --output plan.json --search Hamburg
+```
+
+Der Coach lädt auf Wunsch passende Ironman-Rennen (mit Fallback auf eine
+Offline-Liste), erfasst deinen aktuellen Fitnesszustand und deine
+Zielsetzung und generiert anschließend einen individuellen
+Vorbereitungsplan zwischen 14 und 42 Wochen inklusive Wochenstruktur,
+Legende und Hintergrundinformationen.
 ## Cleaning & ROI Extraction
 Once fMRIPrep is done, generate cleaned time-series and meanFD by:
 ```bash
