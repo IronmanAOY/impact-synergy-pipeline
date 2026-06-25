@@ -1,0 +1,8 @@
+Place your local FreeSurfer license file here if you want `run_pipeline.py --run-fmriprep`
+to discover it automatically.
+
+This file must not be committed.
+
+Alternative:
+- keep your license anywhere on your machine
+- set `FS_LICENSE=/absolute/path/to/license.txt` before running fMRIPrep-related commands

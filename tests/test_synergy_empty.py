@@ -1,0 +1,55 @@
+import pandas as pd
+from impact_pipeline.synergy_ci import compute_synergy_ci
+
+_NAS_PARAMS = {
+    "zthr": 1.0,
+    "eps": 0.2,
+    "tau": 0.2,
+    "lambda_phase": 0.5,
+    "alpha": 0.20,
+    "beta": 0.16,
+    "gamma": 0.14,
+    "delta": 0.12,
+    "eta": 0.16,
+    "zeta": 0.12,
+    "rho": 0.10,
+    "bands": ((0.5, 4.0),),
+    "band_weights": (1.0,),
+    "window_len": 32,
+    "step_len": 16,
+    "max_triads": 5000,
+    "random_state": 0,
+    "workspace_nodes": None,
+    "workspace_quantile": 0.2,
+    "workspace_min_size": 2,
+    "directed_lag": 1,
+    "reverberation_lags": (2, 3, 4),
+    "baseline_ts": None,
+    "boost_against_baseline": False,
+    "normalize": True,
+}
+
+_SRPI_PARAMS = {
+    "modality": "eeg",
+    "pre_window_sec": 0.2,
+    "response_lag_sec": 0.1,
+    "response_window_sec": 0.4,
+    "covariance_ridge": 1e-3,
+    "component_weights": (0.35, 0.25, 0.20, 0.20),
+    "min_events_per_class": 3,
+    "sample_reliability_tau": 4.0,
+    "eps": 1e-8,
+}
+
+def test_empty(tmp_path):
+    df=compute_synergy_ci(
+        str(tmp_path),
+        "schaefer400",
+        [0.5],
+        sessions=("awake",),
+        tr=0.1,
+        nas_params=_NAS_PARAMS,
+        srpi_params=_SRPI_PARAMS,
+        srpi_require_explicit_params=True,
+    )
+    assert isinstance(df,pd.DataFrame) and df.empty

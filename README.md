@@ -1,0 +1,264 @@
+[![DOI](https://zenodo.org/badge/975114052.svg)](https://doi.org/10.5281/zenodo.15306740)
+
+# IMPaCT Synergy Pipeline
+
+This repository contains the IMPaCT metric pipeline for EEG and fMRI data. It
+supports local runs, the browser dashboard, and distributed execution on HLRS
+Hunter.
+
+The codebase is organized as a Python package under `src/impact_pipeline`, with
+`run_pipeline.py` as the main command-line entrypoint.
+
+## Repository Layout
+
+- `src/impact_pipeline/`: preprocessing, metric computation, CI orchestration, and dashboard support code
+- `run_pipeline.py`: main pipeline entrypoint
+- `scripts/`: command-line tools for data download, atlas download, preprocessing inputs, desktop launch, dashboard launch, and synthetic dataset generation
+- `tests/`: regression and smoke tests
+- `docs/metrics.md`: implementation-facing metric definitions
+- `docs/synthetic_data.md`: synthetic validation dataset generation and validation notes
+- `data/managed/`: small managed reference files that are safe to version
+
+Generated outputs, local datasets, dashboard caches, and local license files are
+kept out of version control.
+
+## Installation
+
+Create the conda environment:
+
+```bash
+conda env create -f environment.yml
+conda activate impact-synergy-clean
+```
+
+If the environment already exists:
+
+```bash
+conda env update -n impact-synergy-clean -f environment.yml --prune
+```
+
+## External Requirements
+
+The Python environment covers the analysis code itself. Some workflows also need
+external tools:
+
+- Docker, for fMRIPrep from raw fMRI BIDS data
+- Node.js and `npm`, for OpenNeuro CLI downloads
+- A valid FreeSurfer license, for fMRIPrep with recon-all enabled
+
+FreeSurfer license handling:
+
+- preferred: set `FS_LICENSE=/absolute/path/to/license.txt`
+- alternative: place your local license at `licenses/fs_license.txt`
+- a template is included at `licenses/fs_license.txt.example`
+
+The real license file is not versioned.
+
+## Downloading Data
+
+Download OpenNeuro datasets with:
+
+```bash
+bash scripts/download_data.sh ds003171 2.0.1
+bash scripts/download_data.sh ds005620
+```
+
+Download atlas assets with:
+
+```bash
+bash scripts/download_atlases.sh
+```
+
+The package catalog defines the supported dataset metadata, local root
+candidates, target MPC roles, and pipeline support flags. CI should only be
+computed when RAM, PDI, NAS, IIM, and SRPI are explicitly defined for the run;
+missing components are not imputed.
+
+## Synthetic Validation Datasets
+
+The repository can generate compact real-data-derived synthetic datasets for
+software validation. These are not empirical participant data. They are derived
+from inspected local OpenNeuro payload statistics, timing structures, and event
+templates so the full RAM, PDI, NAS, IIM, SRPI, and CI path can be tested
+without redistributing original participant-level payloads.
+
+See `docs/synthetic_data.md` for generation, validation, and limitations.
+
+## Running The Pipeline Locally
+
+### fMRI Example
+
+```bash
+conda run -n impact-synergy-clean python run_pipeline.py \
+  --execution-mode local \
+  --dataset-id ds003171 \
+  --out-dir outputs/scratch \
+  --run-preprocessing \
+  --mpc-metrics PDI NAS IIM \
+  --no-ci
+```
+
+### EEG Example
+
+```bash
+conda run -n impact-synergy-clean python run_pipeline.py \
+  --execution-mode local \
+  --dataset-id ds005620 \
+  --out-dir outputs/scratch \
+  --run-preprocessing \
+  --mpc-metrics PDI NAS IIM \
+  --no-ci
+```
+
+## Hunter Execution
+
+Hunter execution is selected with `--execution-mode hunter`. The same metric
+logic is used as in local runs, while IIM can be prepared, sharded, and reduced
+through Slurm jobs.
+
+Set the site-specific Slurm/runtime values before building a Hunter campaign:
+
+```bash
+export IMPACT_HUNTER_CONDA_ENV=impact-synergy-clean
+export IMPACT_HUNTER_CPU_PARTITION=<cpu-partition>
+export IMPACT_HUNTER_APU_PARTITION=<apu-partition>
+export IMPACT_HUNTER_SLURM_ACCOUNT=<project-account>  # if required
+export IMPACT_HUNTER_SLURM_QOS=<qos>                  # if required
+export IMPACT_HUNTER_SLURM_SETUP_FILE=/absolute/path/to/hunter_slurm_setup.sh
+```
+
+The optional setup file is copied into generated `.sbatch` files and can contain
+site-specific `module load`, conda initialization, and temporary cache exports.
+
+Build a Hunter campaign:
+
+```bash
+conda run -n impact-synergy-clean python run_pipeline.py \
+  --execution-mode hunter \
+  --hardware-target hunter-apu \
+  --hunter-stage build-campaign \
+  --dataset-id ds003171 \
+  --out-dir outputs/hunter
+```
+
+This command assumes `outputs/hunter/preprocessed/` is populated. Add
+`--run-preprocessing` and, if needed, `--bids-root /path/to/bids-root` when the
+campaign build should also create preprocessing outputs.
+
+The campaign is written under:
+
+```text
+outputs/hunter/cache/hunter_iim_campaign/
+```
+
+Slurm submission files are written under:
+
+```text
+outputs/hunter/cache/hunter_iim_campaign/slurm/
+```
+
+Submit the generated campaign with:
+
+```bash
+bash outputs/hunter/cache/hunter_iim_campaign/slurm/00_submit_all.sh
+```
+
+Hardware selection is explicit. Use `--hardware-target cpu` for NumPy/SciPy CPU
+execution, `--hardware-target auto` to use CuPy when available and otherwise use
+CPU, `--hardware-target gpu` to require a visible CuPy GPU, or
+`--hardware-target hunter-apu` to require a ROCm/HIP CuPy runtime for Hunter APU
+jobs. Explicit GPU/APU modes fail early if the requested accelerator is not
+visible.
+
+The hardware target is passed through RAM, PDI, NAS, IIM, SRPI, and final CI
+computation. The GPU/APU backend uses CuPy/ROCm array operations for
+matrix-heavy MPC kernels while keeping CPU implementations available for normal
+workstations.
+
+## Dashboard And Desktop Launcher
+
+### Browser Dashboard
+
+```bash
+conda run -n impact-synergy-clean python scripts/live_dashboard.py \
+  --out-dir outputs/scratch \
+  --dataset-id ds003171 \
+  --port 8765
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8765
+```
+
+The dashboard provides a three-step workflow:
+
+1. select or upload one or more datasets
+2. configure run settings and per-metric dataset mapping
+3. review live metrics and control the active run
+
+Datasets marked as synthetic are routed to the synthetic validation output area.
+
+### Desktop Launcher
+
+```bash
+conda run -n impact-synergy-clean python scripts/impact_desktop_app.py
+```
+
+Double-click launchers:
+
+- macOS: `scripts/start_impact_desktop.command`
+- Windows: `scripts/start_impact_desktop.bat`
+
+## fMRIPrep Inputs
+
+Fetch fMRIPrep derivatives for ds003171 with:
+
+```bash
+export FS_LICENSE=~/license.txt
+bash scripts/fetch_fmriprep_ds003171.sh
+```
+
+To skip recon-all:
+
+```bash
+bash scripts/fetch_fmriprep_ds003171.sh --skip-reconall
+```
+
+For another dataset root:
+
+```bash
+bash scripts/fetch_fmriprep.sh --bids-root /path/to/bids --dataset-id ds003171
+```
+
+## Testing
+
+Run the full test suite:
+
+```bash
+conda run -n impact-synergy-clean pytest -q
+```
+
+The repository also includes GitHub Actions CI and container definitions for
+Docker and Singularity-based setups.
+
+## Data Hygiene
+
+Dataset-derived files are not committed. This includes:
+
+- raw downloaded datasets
+- preprocessing outputs
+- runtime caches and checkpoints
+- synthetic validation runs and metric exports
+- dashboard registry/cache files
+- local FreeSurfer license files
+
+Keep patient or subject-data runtime outputs under ignored local data and output
+paths.
+
+## Citation
+
+If you use the software, please cite the archived release listed in
+`CITATION.cff`. The DOI badge above points to the Zenodo record for the
+repository.

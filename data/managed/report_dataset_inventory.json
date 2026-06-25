@@ -1,0 +1,543 @@
+[
+  {
+    "annex_objects_externalized": false,
+    "annex_objects_root": null,
+    "dataset_description_doi": "doi:10.18112/openneuro.ds006623.v1.0.0",
+    "dataset_description_license": "CC0",
+    "dataset_description_name": "Michigan Human Anesthesia fMRI Dataset-1",
+    "dataset_id": "ds006623",
+    "doi": "10.18112/openneuro.ds006623.v1.0.0",
+    "fetch_strategy": "git_mirror",
+    "has_annex_metadata": true,
+    "has_derivatives": true,
+    "has_git_repo": true,
+    "license": "CC0",
+    "license_note": "",
+    "local_bytes": 2018814747,
+    "local_gib": 1.88,
+    "local_root": "/Volumes/MPW_OT_AOY/impact-synergy-pipeline/data/scratch/ds006623",
+    "local_root_candidates": [
+      "data/scratch/ds006623",
+      "data/ds006623"
+    ],
+    "local_status": "present",
+    "mirror_git_url": "https://github.com/OpenNeuroDatasets/ds006623.git",
+    "modality": "fmri",
+    "notes": "Primary fMRI state-switch anchor from the report. Strong for awake-vs-sedated PDI/NAS/IIM analyses, but not a full CI dataset on its own.",
+    "pipeline_ready": false,
+    "report_priority": 1,
+    "report_role": "state_switch_anchor_fmri",
+    "representative_payload_complete": false,
+    "representative_payload_missing": [
+      "derivatives/fmriprep_output/sub-02/func/sub-02_task-imagery_run-1_space-MNI152NLin2009cAsym_res-04_desc-preproc_bold.nii.gz"
+    ],
+    "representative_payload_paths": [
+      "derivatives/fmriprep_output/sub-02/func/sub-02_task-imagery_run-1_space-MNI152NLin2009cAsym_res-04_desc-preproc_bold.nii.gz"
+    ],
+    "representative_payload_present": [],
+    "representative_payload_present_count": 0,
+    "snapshot": "1.0.0",
+    "snapshot_complete": null,
+    "snapshot_missing_bytes": null,
+    "snapshot_missing_files": null,
+    "snapshot_missing_gib": null,
+    "snapshot_mode": null,
+    "snapshot_status_known": false,
+    "snapshot_total_bytes": null,
+    "snapshot_total_files": null,
+    "snapshot_total_gib": null,
+    "source_url": "https://openneuro.org/datasets/ds006623",
+    "subject_dirs": 26,
+    "target_metrics": [
+      "PDI",
+      "NAS",
+      "IIM"
+    ],
+    "task_examples": [
+      "imagery",
+      "rest"
+    ],
+    "task_hints": [
+      "imagery",
+      "rest"
+    ],
+    "title": "Michigan Human Anesthesia fMRI Dataset-1"
+  },
+  {
+    "annex_objects_externalized": false,
+    "annex_objects_root": "/Volumes/MPW_OT_AOY/impact-synergy-pipeline/data/scratch/ds005620_annex/.git/annex/objects",
+    "dataset_description_doi": "doi:10.18112/openneuro.ds005620.v1.0.0",
+    "dataset_description_license": "CC0",
+    "dataset_description_name": "A repeated awakening study exploring the capacity of complexity measures to capture dreaming during propofol sedation",
+    "dataset_id": "ds005620",
+    "doi": "10.18112/openneuro.ds005620.v1.0.0",
+    "fetch_strategy": "full_local",
+    "has_annex_metadata": true,
+    "has_derivatives": false,
+    "has_git_repo": true,
+    "license": "CC0",
+    "license_note": "The report flagged a license inconsistency between README metadata and dataset_description; treat citation conservatively and cite the dataset DOI plus original authors.",
+    "local_bytes": 44434483236,
+    "local_gib": 41.383,
+    "local_root": "/Volumes/MPW_OT_AOY/impact-synergy-pipeline/data/scratch/ds005620_annex",
+    "local_root_candidates": [
+      "data/scratch/ds005620_annex",
+      "data/scratch/ds005620",
+      "data/ds005620"
+    ],
+    "local_status": "present",
+    "mirror_git_url": "https://github.com/OpenNeuroDatasets/ds005620.git",
+    "modality": "eeg",
+    "notes": "Primary EEG state-switch anchor from the report and one of the current pipeline-enabled datasets.",
+    "pipeline_ready": true,
+    "report_priority": 2,
+    "report_role": "state_switch_anchor_eeg",
+    "representative_payload_complete": true,
+    "representative_payload_missing": [],
+    "representative_payload_paths": [
+      "sub-1010/eeg/sub-1010_task-awake_acq-EC_eeg.vhdr",
+      "sub-1010/eeg/sub-1010_task-awake_acq-EC_eeg.eeg",
+      "sub-1010/eeg/sub-1010_task-awake_acq-EC_eeg.vmrk"
+    ],
+    "representative_payload_present": [
+      "sub-1010/eeg/sub-1010_task-awake_acq-EC_eeg.vhdr",
+      "sub-1010/eeg/sub-1010_task-awake_acq-EC_eeg.eeg",
+      "sub-1010/eeg/sub-1010_task-awake_acq-EC_eeg.vmrk"
+    ],
+    "representative_payload_present_count": 3,
+    "snapshot": "1.0.0",
+    "snapshot_complete": false,
+    "snapshot_missing_bytes": 73319243083,
+    "snapshot_missing_files": 483,
+    "snapshot_missing_gib": 68.284,
+    "snapshot_mode": "full",
+    "snapshot_status_known": true,
+    "snapshot_total_bytes": 83002663223,
+    "snapshot_total_files": 1442,
+    "snapshot_total_gib": 77.302,
+    "source_url": "https://openneuro.org/datasets/ds005620",
+    "subject_dirs": 21,
+    "target_metrics": [
+      "PDI",
+      "NAS",
+      "IIM"
+    ],
+    "task_examples": [
+      "awake",
+      "sed",
+      "sed2"
+    ],
+    "task_hints": [
+      "awake",
+      "sed",
+      "sed2"
+    ],
+    "title": "A repeated awakening study exploring the capacity of complexity measures to capture dreaming during propofol sedation"
+  },
+  {
+    "annex_objects_externalized": false,
+    "annex_objects_root": null,
+    "dataset_description_doi": "doi:10.18112/openneuro.ds004295.v1.0.0",
+    "dataset_description_license": "CC0",
+    "dataset_description_name": "Reward gain and punishment avoidance reversal learning",
+    "dataset_id": "ds004295",
+    "doi": "10.18112/openneuro.ds004295.v1.0.0",
+    "fetch_strategy": "git_mirror",
+    "has_annex_metadata": true,
+    "has_derivatives": false,
+    "has_git_repo": true,
+    "license": "CC0",
+    "license_note": "",
+    "local_bytes": 2471448,
+    "local_gib": 0.002,
+    "local_root": "/Volumes/MPW_OT_AOY/impact-synergy-pipeline/data/scratch/ds004295",
+    "local_root_candidates": [
+      "data/scratch/ds004295",
+      "data/ds004295"
+    ],
+    "local_status": "present",
+    "mirror_git_url": "https://github.com/OpenNeuroDatasets/ds004295.git",
+    "modality": "eeg",
+    "notes": "Reward/feedback EEG module prioritized in the report for RAM-oriented estimation.",
+    "pipeline_ready": false,
+    "report_priority": 3,
+    "report_role": "ram_feedback_module_eeg",
+    "representative_payload_complete": false,
+    "representative_payload_missing": [
+      "sub-s1/eeg/sub-s1_task-task_eeg.set",
+      "sub-s1/eeg/sub-s1_task-task_eeg.fdt"
+    ],
+    "representative_payload_paths": [
+      "sub-s1/eeg/sub-s1_task-task_eeg.set",
+      "sub-s1/eeg/sub-s1_task-task_eeg.fdt"
+    ],
+    "representative_payload_present": [],
+    "representative_payload_present_count": 0,
+    "snapshot": "1.0.0",
+    "snapshot_complete": false,
+    "snapshot_missing_bytes": 32548671270,
+    "snapshot_missing_files": 95,
+    "snapshot_missing_gib": 30.313,
+    "snapshot_mode": "full",
+    "snapshot_status_known": true,
+    "snapshot_total_bytes": 33831372141,
+    "snapshot_total_files": 183,
+    "snapshot_total_gib": 31.508,
+    "source_url": "https://openneuro.org/datasets/ds004295",
+    "subject_dirs": 26,
+    "target_metrics": [
+      "RAM"
+    ],
+    "task_examples": [
+      "task"
+    ],
+    "task_hints": [
+      "task"
+    ],
+    "title": "Reward gain and punishment avoidance reversal learning"
+  },
+  {
+    "annex_objects_externalized": false,
+    "annex_objects_root": null,
+    "dataset_description_doi": "10.18112/openneuro.ds002547.v1.1.0",
+    "dataset_description_license": "CC0",
+    "dataset_description_name": "SharedStates",
+    "dataset_id": "ds002547",
+    "doi": "10.18112/openneuro.ds002547.v1.1.0",
+    "fetch_strategy": "git_mirror",
+    "has_annex_metadata": true,
+    "has_derivatives": true,
+    "has_git_repo": true,
+    "license": "CC0",
+    "license_note": "",
+    "local_bytes": 275498172,
+    "local_gib": 0.257,
+    "local_root": "/Volumes/MPW_OT_AOY/impact-synergy-pipeline/data/scratch/ds002547",
+    "local_root_candidates": [
+      "data/scratch/ds002547",
+      "data/ds002547"
+    ],
+    "local_status": "present",
+    "mirror_git_url": "https://github.com/OpenNeuroDatasets/ds002547.git",
+    "modality": "fmri",
+    "notes": "Explicit self-versus-other fMRI dataset used by the report as the cleanest SRPI module.",
+    "pipeline_ready": false,
+    "report_priority": 4,
+    "report_role": "srpi_self_other_module_fmri",
+    "representative_payload_complete": false,
+    "representative_payload_missing": [
+      "derivatives/fmriprep/sub-01/ses-1/func/sub-01_ses-1_task-other_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
+    ],
+    "representative_payload_paths": [
+      "derivatives/fmriprep/sub-01/ses-1/func/sub-01_ses-1_task-other_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
+    ],
+    "representative_payload_present": [],
+    "representative_payload_present_count": 0,
+    "snapshot": "1.1.0",
+    "snapshot_complete": null,
+    "snapshot_missing_bytes": null,
+    "snapshot_missing_files": null,
+    "snapshot_missing_gib": null,
+    "snapshot_mode": null,
+    "snapshot_status_known": false,
+    "snapshot_total_bytes": null,
+    "snapshot_total_files": null,
+    "snapshot_total_gib": null,
+    "source_url": "https://openneuro.org/datasets/ds002547",
+    "subject_dirs": 26,
+    "target_metrics": [
+      "SRPI"
+    ],
+    "task_examples": [
+      "other",
+      "self"
+    ],
+    "task_hints": [
+      "self",
+      "other"
+    ],
+    "title": "SharedStates"
+  },
+  {
+    "annex_objects_externalized": false,
+    "annex_objects_root": null,
+    "dataset_description_doi": "10.18112/openneuro.ds002685.v1.3.1",
+    "dataset_description_license": "CC0",
+    "dataset_description_name": "IBC",
+    "dataset_id": "ds002685",
+    "doi": "10.18112/openneuro.ds002685.v1.3.1",
+    "fetch_strategy": "git_mirror",
+    "has_annex_metadata": true,
+    "has_derivatives": false,
+    "has_git_repo": true,
+    "license": "CC0",
+    "license_note": "",
+    "local_bytes": 8170000,
+    "local_gib": 0.008,
+    "local_root": "/Volumes/MPW_OT_AOY/impact-synergy-pipeline/data/scratch/ds002685",
+    "local_root_candidates": [
+      "data/scratch/ds002685",
+      "data/ds002685"
+    ],
+    "local_status": "present",
+    "mirror_git_url": "https://github.com/OpenNeuroDatasets/ds002685.git",
+    "modality": "fmri",
+    "notes": "Dense awake-only reference dataset with self and reward tasks. Useful for human normalization and robustness checks, not for direct awake-vs-deep CI estimation.",
+    "pipeline_ready": false,
+    "report_priority": 5,
+    "report_role": "awake_reference_multitask_fmri",
+    "representative_payload_complete": false,
+    "representative_payload_missing": [
+      "sub-01/ses-00/func/sub-01_ses-00_task-ArchiSocial_dir-ap_bold.nii.gz"
+    ],
+    "representative_payload_paths": [
+      "sub-01/ses-00/func/sub-01_ses-00_task-ArchiSocial_dir-ap_bold.nii.gz"
+    ],
+    "representative_payload_present": [],
+    "representative_payload_present_count": 0,
+    "snapshot": "1.3.1",
+    "snapshot_complete": null,
+    "snapshot_missing_bytes": null,
+    "snapshot_missing_files": null,
+    "snapshot_missing_gib": null,
+    "snapshot_mode": null,
+    "snapshot_status_known": false,
+    "snapshot_total_bytes": null,
+    "snapshot_total_files": null,
+    "snapshot_total_gib": null,
+    "source_url": "https://openneuro.org/datasets/ds002685",
+    "subject_dirs": 13,
+    "target_metrics": [
+      "RAM",
+      "SRPI"
+    ],
+    "task_examples": [
+      "ArchiEmotional",
+      "ArchiSocial",
+      "ArchiSpatial",
+      "ArchiStandard",
+      "HcpEmotion",
+      "HcpGambling",
+      "HcpLanguage",
+      "HcpMotor",
+      "HcpRelational",
+      "HcpSocial",
+      "HcpWm",
+      "RSVPLanguage"
+    ],
+    "task_hints": [
+      "Self",
+      "HcpGambling",
+      "Discount",
+      "PreferenceFaces",
+      "PreferenceFood"
+    ],
+    "title": "IBC"
+  },
+  {
+    "annex_objects_externalized": false,
+    "annex_objects_root": null,
+    "dataset_description_doi": "doi:10.18112/openneuro.ds005479.v1.1.1",
+    "dataset_description_license": "CC0",
+    "dataset_description_name": "Monetary Incentive Delay task - structural and functional images of 37 men; study of associations between circadian characteristics (eveningness, distinctness) and affective processing",
+    "dataset_id": "ds005479",
+    "doi": "10.18112/openneuro.ds005479.v1.1.1",
+    "fetch_strategy": "git_mirror",
+    "has_annex_metadata": true,
+    "has_derivatives": true,
+    "has_git_repo": true,
+    "license": "CC0",
+    "license_note": "",
+    "local_bytes": 15022838,
+    "local_gib": 0.014,
+    "local_root": "/Volumes/MPW_OT_AOY/impact-synergy-pipeline/data/scratch/ds005479",
+    "local_root_candidates": [
+      "data/scratch/ds005479",
+      "data/ds005479"
+    ],
+    "local_status": "present",
+    "mirror_git_url": "https://github.com/OpenNeuroDatasets/ds005479.git",
+    "modality": "fmri",
+    "notes": "Optional fMRI reward module from the report for RAM/reward analyses, with narrower population coverage.",
+    "pipeline_ready": false,
+    "report_priority": 6,
+    "report_role": "ram_reward_module_fmri",
+    "representative_payload_complete": false,
+    "representative_payload_missing": [
+      "sub-01/func/sub-01_task-MID_bold.nii.gz"
+    ],
+    "representative_payload_paths": [
+      "sub-01/func/sub-01_task-MID_bold.nii.gz"
+    ],
+    "representative_payload_present": [],
+    "representative_payload_present_count": 0,
+    "snapshot": "1.1.1",
+    "snapshot_complete": null,
+    "snapshot_missing_bytes": null,
+    "snapshot_missing_files": null,
+    "snapshot_missing_gib": null,
+    "snapshot_mode": null,
+    "snapshot_status_known": false,
+    "snapshot_total_bytes": null,
+    "snapshot_total_files": null,
+    "snapshot_total_gib": null,
+    "source_url": "https://openneuro.org/datasets/ds005479",
+    "subject_dirs": 37,
+    "target_metrics": [
+      "RAM"
+    ],
+    "task_examples": [
+      "MID"
+    ],
+    "task_hints": [
+      "MID"
+    ],
+    "title": "Monetary Incentive Delay task - structural and functional images of 37 men; study of associations between circadian characteristics (eveningness, distinctness) and affective processing"
+  },
+  {
+    "annex_objects_externalized": false,
+    "annex_objects_root": null,
+    "dataset_description_doi": "10.18112/openneuro.ds002336.v2.0.2",
+    "dataset_description_license": "CC0",
+    "dataset_description_name": "A multi-modal human neuroimaging dataset for data integration: simultaneous EEG and fMRI acquisition during a motor imagery neurofeedback task: XP1",
+    "dataset_id": "ds002336",
+    "doi": "10.18112/openneuro.ds002336.v2.0.2",
+    "fetch_strategy": "git_mirror",
+    "has_annex_metadata": true,
+    "has_derivatives": true,
+    "has_git_repo": true,
+    "license": "CC0",
+    "license_note": "",
+    "local_bytes": 1699006,
+    "local_gib": 0.002,
+    "local_root": "/Volumes/MPW_OT_AOY/impact-synergy-pipeline/data/scratch/ds002336",
+    "local_root_candidates": [
+      "data/scratch/ds002336",
+      "data/ds002336"
+    ],
+    "local_status": "present",
+    "mirror_git_url": "https://github.com/OpenNeuroDatasets/ds002336.git",
+    "modality": "eeg_fmri",
+    "notes": "Simultaneous EEG-fMRI neurofeedback dataset retained for multimodal method development rather than CI completion.",
+    "pipeline_ready": false,
+    "report_priority": 7,
+    "report_role": "multimodal_method_development",
+    "representative_payload_complete": false,
+    "representative_payload_missing": [
+      "sub-xp101/eeg/sub-xp101_task-eegNF_eeg.vhdr",
+      "sub-xp101/eeg/sub-xp101_task-eegNF_eeg.eeg",
+      "sub-xp101/eeg/sub-xp101_task-eegNF_eeg.vmrk"
+    ],
+    "representative_payload_paths": [
+      "sub-xp101/eeg/sub-xp101_task-eegNF_eeg.vhdr",
+      "sub-xp101/eeg/sub-xp101_task-eegNF_eeg.eeg",
+      "sub-xp101/eeg/sub-xp101_task-eegNF_eeg.vmrk"
+    ],
+    "representative_payload_present": [],
+    "representative_payload_present_count": 0,
+    "snapshot": "2.0.2",
+    "snapshot_complete": false,
+    "snapshot_missing_bytes": 18963265466,
+    "snapshot_missing_files": 507,
+    "snapshot_missing_gib": 17.661,
+    "snapshot_mode": "full",
+    "snapshot_status_known": true,
+    "snapshot_total_bytes": 19300632809,
+    "snapshot_total_files": 666,
+    "snapshot_total_gib": 17.975,
+    "source_url": "https://openneuro.org/datasets/ds002336",
+    "subject_dirs": 10,
+    "target_metrics": [
+      "RAM",
+      "NAS"
+    ],
+    "task_examples": [
+      "MIpost",
+      "MIpre",
+      "eegNF",
+      "eegfmriNF",
+      "fmriNF",
+      "motorloc"
+    ],
+    "task_hints": [
+      "motorloc",
+      "eegNF",
+      "fmriNF",
+      "eegfmriNF"
+    ],
+    "title": "A multi-modal human neuroimaging dataset for data integration: simultaneous EEG and fMRI acquisition during a motor imagery neurofeedback task: XP1"
+  },
+  {
+    "annex_objects_externalized": false,
+    "annex_objects_root": null,
+    "dataset_description_doi": "10.18112/openneuro.ds003171.v2.0.1",
+    "dataset_description_license": "CC0",
+    "dataset_description_name": "Modeling an auditory stimulated brain under altered states of consciousness using the generalized ising model",
+    "dataset_id": "ds003171",
+    "doi": "10.18112/openneuro.ds003171.v2.0.1",
+    "fetch_strategy": "full_local",
+    "has_annex_metadata": true,
+    "has_derivatives": false,
+    "has_git_repo": true,
+    "license": "CC0",
+    "license_note": "",
+    "local_bytes": 5250916,
+    "local_gib": 0.005,
+    "local_root": "/Volumes/MPW_OT_AOY/impact-synergy-pipeline/data/scratch/ds003171",
+    "local_root_candidates": [
+      "data/scratch/ds003171",
+      "data/ds003171"
+    ],
+    "local_status": "present",
+    "mirror_git_url": "https://github.com/OpenNeuroDatasets/ds003171.git",
+    "modality": "fmri",
+    "notes": "fMRI replication anchor in the repository. Valuable for PDI/NAS/IIM, but RAM and SRPI remain undefined.",
+    "pipeline_ready": true,
+    "report_priority": 8,
+    "report_role": "legacy_state_switch_anchor_fmri",
+    "representative_payload_complete": false,
+    "representative_payload_missing": [
+      "sub-2525JK/func/sub-2525JK_task-audioawake_run-01_bold.nii.gz"
+    ],
+    "representative_payload_paths": [
+      "sub-2525JK/func/sub-2525JK_task-audioawake_run-01_bold.nii.gz"
+    ],
+    "representative_payload_present": [],
+    "representative_payload_present_count": 0,
+    "snapshot": "2.0.1",
+    "snapshot_complete": false,
+    "snapshot_missing_bytes": 21973460,
+    "snapshot_missing_files": 6,
+    "snapshot_missing_gib": 0.02,
+    "snapshot_mode": "full",
+    "snapshot_status_known": true,
+    "snapshot_total_bytes": 4830971510,
+    "snapshot_total_files": 534,
+    "snapshot_total_gib": 4.499,
+    "source_url": "https://openneuro.org/datasets/ds003171",
+    "subject_dirs": 17,
+    "target_metrics": [
+      "PDI",
+      "NAS",
+      "IIM"
+    ],
+    "task_examples": [
+      "audio",
+      "audioawake",
+      "audiodeep",
+      "audiolight",
+      "audiorecovery",
+      "restawake",
+      "restdeep",
+      "restlight",
+      "restrecovery"
+    ],
+    "task_hints": [
+      "audioawake",
+      "audiodeep",
+      "restawake",
+      "restdeep"
+    ],
+    "title": "Modeling an auditory stimulated brain under altered states of consciousness using the generalized ising model"
+  }
+]

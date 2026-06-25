@@ -1,0 +1,28 @@
+name: impact-synergy-clean
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - statsmodels
+  - nibabel
+  - nilearn>=0.11
+  - networkx
+  - python-louvain
+  - python-docx
+  - matplotlib
+  - mne=1.6.*
+  - joblib
+  - numba=0.61.*
+  - psutil
+  - pybids
+  - pytest
+  - flake8
+  - black
+  - pyinstaller
+  - pip
+  - pip:
+      - bids-validator==1.14.7.post0

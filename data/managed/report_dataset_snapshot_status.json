@@ -1,0 +1,54 @@
+[
+  {
+    "dataset_id": "ds005620",
+    "local_root": "/Users/anthonyobiri-yeboah/minDev/impact-synergy-pipeline/data/scratch/ds005620_annex",
+    "mode": "full",
+    "snapshot": "1.0.0",
+    "snapshot_complete": false,
+    "snapshot_missing_bytes": 73319243083,
+    "snapshot_missing_files": 483,
+    "snapshot_missing_gib": 68.284,
+    "snapshot_total_bytes": 83002663223,
+    "snapshot_total_files": 1442,
+    "snapshot_total_gib": 77.302
+  },
+  {
+    "dataset_id": "ds004295",
+    "local_root": "/Users/anthonyobiri-yeboah/minDev/impact-synergy-pipeline/data/scratch/ds004295",
+    "mode": "full",
+    "snapshot": "1.0.0",
+    "snapshot_complete": false,
+    "snapshot_missing_bytes": 32548671270,
+    "snapshot_missing_files": 95,
+    "snapshot_missing_gib": 30.313,
+    "snapshot_total_bytes": 33831372141,
+    "snapshot_total_files": 183,
+    "snapshot_total_gib": 31.508
+  },
+  {
+    "dataset_id": "ds002336",
+    "local_root": "/Users/anthonyobiri-yeboah/minDev/impact-synergy-pipeline/data/scratch/ds002336",
+    "mode": "full",
+    "snapshot": "2.0.2",
+    "snapshot_complete": false,
+    "snapshot_missing_bytes": 18963265466,
+    "snapshot_missing_files": 507,
+    "snapshot_missing_gib": 17.661,
+    "snapshot_total_bytes": 19300632809,
+    "snapshot_total_files": 666,
+    "snapshot_total_gib": 17.975
+  },
+  {
+    "dataset_id": "ds003171",
+    "local_root": "/Users/anthonyobiri-yeboah/minDev/impact-synergy-pipeline/data/scratch/ds003171",
+    "mode": "full",
+    "snapshot": "2.0.1",
+    "snapshot_complete": false,
+    "snapshot_missing_bytes": 21973460,
+    "snapshot_missing_files": 6,
+    "snapshot_missing_gib": 0.02,
+    "snapshot_total_bytes": 4830971510,
+    "snapshot_total_files": 534,
+    "snapshot_total_gib": 4.499
+  }
+]
