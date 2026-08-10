@@ -132,9 +132,9 @@ Implementation notes:
   dimensionality, and multiscale ordinal complexity.
 - Default component weights are
   \((\alpha_{\Xi},\alpha_{\Delta},\alpha_D,\alpha_C)=(0.35,0.25,0.20,0.20)\).
-- Paper-mode pipeline uses strict measured baselines:
+- Strict validation mode uses measured baselines:
   deep-rest anchor and state-matched rest control endpoint.
-- Manuscript runs do not use shuffled/surrogate fallback; missing required
+- Strict validation mode does not use shuffled/surrogate fallback; missing required
   baseline keeps PDI endpoints undefined (`NaN`).
 - CI consumes the anchored non-negative component
   \(\max(\mathrm{PDI}^{\mathrm{raw}}_{\mathrm{anchor}},0)\).

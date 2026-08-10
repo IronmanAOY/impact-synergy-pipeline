@@ -44,7 +44,7 @@ INSPECTION_DIR = SSD_ROOT / "test_objects" / "real_derived_synth_completed" / "r
 DATASETS_OUT = SSD_ROOT / "test_objects" / "datasets" / "real_derived_synth_completed"
 RUNS_OUT = SSD_ROOT / "test_objects" / "runs" / "real_derived_synth_completed"
 REPORTS_OUT = SSD_ROOT / "test_objects" / "real_derived_synth_completed" / "reports"
-SOURCE_ROOT = SSD_ROOT / "data" / "scratch"
+SOURCE_ROOT = Path(os.environ.get("IMPACT_SOURCE_ROOT", SSD_ROOT / "data" / "scratch")).expanduser()
 
 TARGETS = ("ds003171", "ds002547", "ds005620")
 DONORS = ("ds005479", "ds004295", "ds002336")
@@ -202,8 +202,57 @@ def _first_existing(patterns: list[Path]) -> Path:
     raise FileNotFoundError(f"No existing path among: {[str(p) for p in patterns]}")
 
 
+def _unique_paths(paths: list[Path]) -> list[Path]:
+    seen = set()
+    out = []
+    for path in paths:
+        expanded = path.expanduser()
+        key = str(expanded)
+        if key not in seen:
+            seen.add(key)
+            out.append(expanded)
+    return out
+
+
+def _source_dataset_candidates(dataset_id: str) -> list[Path]:
+    root = SOURCE_ROOT.expanduser()
+    candidates: list[Path] = []
+    if dataset_id == "ds005620":
+        if root.name in {"ds005620", "ds005620_annex"}:
+            candidates.append(root)
+        candidates.extend(
+            [
+                root / "ds005620_annex",
+                root / "ds005620",
+                root / "data" / "scratch" / "ds005620_annex",
+                root / "data" / "scratch" / "ds005620",
+                root / "data" / "ds005620",
+            ]
+        )
+    else:
+        if root.name == dataset_id:
+            candidates.append(root)
+        candidates.extend(
+            [
+                root / dataset_id,
+                root / "data" / "scratch" / dataset_id,
+                root / "data" / dataset_id,
+            ]
+        )
+    return _unique_paths(candidates)
+
+
+def _source_dataset_root(dataset_id: str) -> Path:
+    candidates = _source_dataset_candidates(dataset_id)
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate.resolve()
+    return candidates[0]
+
+
 def _load_mid_events() -> pd.DataFrame:
-    path = _first_existing(sorted((SOURCE_ROOT / "ds005479").glob("sub-*/func/*_task-MID_events.tsv")))
+    root = _source_dataset_root("ds005479")
+    path = _first_existing(sorted(root.glob("sub-*/func/*_task-MID_events.tsv")))
     df = pd.read_csv(path, sep="\t")
     label_to_reward = {
         "loss big": 0.25,
@@ -217,7 +266,7 @@ def _load_mid_events() -> pd.DataFrame:
 
 
 def _load_self_other_templates() -> tuple[pd.DataFrame, pd.DataFrame]:
-    root = SOURCE_ROOT / "ds002547"
+    root = _source_dataset_root("ds002547")
     self_path = _first_existing(sorted(root.glob("sub-*/ses-*/func/*_task-self*_events.tsv")))
     other_path = _first_existing(sorted(root.glob("sub-*/ses-*/func/*_task-other*_events.tsv")))
     self_df = pd.read_csv(self_path, sep="\t")
@@ -228,7 +277,7 @@ def _load_self_other_templates() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 
 def _load_audio_template() -> dict[str, Any]:
-    root = SOURCE_ROOT / "ds003171"
+    root = _source_dataset_root("ds003171")
     files = sorted(root.glob("sub-*/func/*_events.tsv"))
     sidecars = sorted(root.glob("sub-*/func/*_bold.json"))
     return {
@@ -238,7 +287,7 @@ def _load_audio_template() -> dict[str, Any]:
 
 
 def _load_eeg_template_files() -> dict[str, Any]:
-    root = SOURCE_ROOT / "ds005620_annex"
+    root = _source_dataset_root("ds005620")
     return {
         "events_files": [str(p) for p in sorted(root.glob("sub-*/eeg/*_events.tsv"))[:8]],
         "vhdr_files": [str(p) for p in sorted(root.glob("sub-*/eeg/*_eeg.vhdr"))[:8]],
@@ -334,7 +383,7 @@ def _extract_nifti_payload_timeseries(
     n_time: int | None = None,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     if nib is None:
-        raise RuntimeError("nibabel is required for authentic fMRI payload extraction")
+        raise RuntimeError("nibabel is required for fMRI payload extraction")
     if not path.exists():
         raise FileNotFoundError(path)
     img = nib.load(str(path))
@@ -394,7 +443,7 @@ def _extract_brainvision_payload_timeseries(
     max_seconds: float,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     if mne is None:
-        raise RuntimeError("mne is required for authentic EEG payload extraction")
+        raise RuntimeError("mne is required for EEG payload extraction")
     if not path.exists():
         raise FileNotFoundError(path)
     raw = mne.io.read_raw_brainvision(str(path), preload=False, verbose="ERROR")
@@ -683,7 +732,6 @@ def _make_fmri_base(
         shared_scale += 0.05
     x = local * (0.72 if not rest else 0.42) + shared_scale * latent.dot(weights)
     if rest:
-        # Rest baselines are deliberately lower differentiation than task but retain source-like AR structure.
         x = signal.savgol_filter(x, window_length=9, polyorder=2, axis=0).astype(np.float32)
     return _normalize_nodes(x)
 
@@ -830,9 +878,7 @@ def _build_events(
         source_diffs = np.diff(source_on)
         source_diffs = source_diffs[(source_diffs >= 4.0) & (source_diffs <= 30.0)]
         median_source_gap = float(np.median(source_diffs)) if source_diffs.size else 8.0
-        # fMRI SRPI windows are long: pre=2s, lag=4s, response=6s. The
-        # combined synthetic task must not place self and nonself response windows
-        # on top of each other, even if their donor tasks had similar onsets.
+        # Keep fMRI self/nonself response windows separated.
         slot_gap = max(10.5, median_source_gap)
         n_slots = 20
         latest_start = max(12.0, run_stop - (slot_gap * (n_slots - 1) + 18.0))
@@ -869,7 +915,6 @@ def _build_events(
     df = pd.DataFrame(rows)
     df = df.sort_values(["onset", "trial_type"]).reset_index(drop=True)
     df["synthetic_derivation"] = "real_data_derived_synthetic_not_patient_data"
-    # Small deterministic onset jitter preserves non-perfect regularity while staying source-derived.
     jitter = rng.normal(0.0, 0.015 if modality == "eeg" else 0.08, size=len(df))
     df["onset"] = np.maximum(0.0, df["onset"].astype(float) + jitter)
     return df
@@ -1054,10 +1099,10 @@ def _write_dataset_description(root: Path, dataset_id: str, modality: str) -> No
             "GeneratedBy": [
                 {
                     "Name": "generate_real_derived_synth_completed.py",
-                    "Description": "Derived synthetic data from inspected local OpenNeuro payload statistics; not real patient data.",
+                    "Description": "Derived synthetic data from local OpenNeuro source statistics.",
                 }
             ],
-            "HowToAcknowledge": "Synthetic validation data only. Cite original source datasets listed in manifest when discussing derivation.",
+            "HowToAcknowledge": "Cite original source datasets listed in manifest when discussing derivation.",
             "SyntheticData": True,
             "Modality": modality,
         },
@@ -1067,9 +1112,8 @@ def _write_dataset_description(root: Path, dataset_id: str, modality: str) -> No
             [
                 f"# {dataset_id} real-data-derived synthetic validation dataset",
                 "",
-                "This directory contains synthetic validation data only.",
-                "It is derived from local OpenNeuro source statistics and donor event structures.",
-                "It is not real patient or participant data and must not be analyzed as empirical evidence.",
+                "This directory contains synthetic validation data derived from local OpenNeuro source statistics.",
+                "Use for software validation, not empirical inference.",
                 "",
             ]
         ),
@@ -1099,20 +1143,22 @@ def _write_sidecar(path: Path, payload: dict[str, Any]) -> None:
 
 
 def _ds003171_bold_path(subj: str, session: str, *, rest: bool) -> Path:
+    root = _source_dataset_root("ds003171")
     task = f"rest{session}" if rest else f"audio{session}"
-    path = SOURCE_ROOT / "ds003171" / f"sub-{subj}" / "func" / f"sub-{subj}_task-{task}_run-01_bold.nii.gz"
+    path = root / f"sub-{subj}" / "func" / f"sub-{subj}_task-{task}_run-01_bold.nii.gz"
     if path.exists():
         return path
     if (not rest) and session == "awake":
-        fallback = SOURCE_ROOT / "ds003171" / f"sub-{subj}" / "func" / f"sub-{subj}_task-audio_run-01_bold.nii.gz"
+        fallback = root / f"sub-{subj}" / "func" / f"sub-{subj}_task-audio_run-01_bold.nii.gz"
         if fallback.exists():
             return fallback
     return path
 
 
 def _ds002547_task_path(subj: str, session: str) -> Path:
+    root = _source_dataset_root("ds002547")
     source_session = "ses-2" if session == "ses-2" else "ses-1"
-    func = SOURCE_ROOT / "ds002547" / "derivatives" / "fmriprep" / f"sub-{subj}" / source_session / "func"
+    func = root / "derivatives" / "fmriprep" / f"sub-{subj}" / source_session / "func"
     if session in {"deep", "ses-2"}:
         patterns = [
             f"sub-{subj}_{source_session}_task-other_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz",
@@ -1129,7 +1175,7 @@ def _ds002547_task_path(subj: str, session: str) -> Path:
         path = func / name
         if path.exists():
             return path
-    fallback_func = SOURCE_ROOT / "ds002547" / "derivatives" / "fmriprep" / f"sub-{subj}" / "ses-1" / "func"
+    fallback_func = root / "derivatives" / "fmriprep" / f"sub-{subj}" / "ses-1" / "func"
     hits = sorted(fallback_func.glob(f"sub-{subj}_ses-1_task-*_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"))
     if hits:
         return hits[0]
@@ -1137,7 +1183,7 @@ def _ds002547_task_path(subj: str, session: str) -> Path:
 
 
 def _ds005620_vhdr_path(subj: str, session: str, *, rest: bool) -> Path:
-    eeg_dir = SOURCE_ROOT / "ds005620_annex" / f"sub-{subj}" / "eeg"
+    eeg_dir = _source_dataset_root("ds005620") / f"sub-{subj}" / "eeg"
     if session == "awake":
         acq = "EO" if rest else "EC"
         cand = eeg_dir / f"sub-{subj}_task-awake_acq-{acq}_eeg.vhdr"
@@ -1156,10 +1202,7 @@ def _ds005620_vhdr_path(subj: str, session: str, *, rest: bool) -> Path:
 
 
 def _source_subjects(dataset_id: str) -> list[str]:
-    if dataset_id == "ds005620":
-        root = SOURCE_ROOT / "ds005620_annex"
-    else:
-        root = SOURCE_ROOT / dataset_id
+    root = _source_dataset_root(dataset_id)
     return [p.name.replace("sub-", "") for p in sorted(root.glob("sub-*")) if p.is_dir()]
 
 
@@ -1385,6 +1428,7 @@ def _make_dataset(
         "not_real_patient_data": True,
         "bids_root": str(dataset_root),
         "preprocessed_root": str(prep_root),
+        "source_root": str(SOURCE_ROOT),
         "atlas": atlas,
         "condition": condition,
         "sessions": sessions_to_generate,
@@ -1420,12 +1464,11 @@ def _make_dataset(
             ),
         },
         "limitations": [
-            "Synthetic arrays are not empirical participant data.",
             "fMRI preprocessed derivatives use 400 real-payload voxel-derived synthetic atlas nodes and compact synthetic NIfTI payloads for CI tests.",
             "EEG derivatives are resampled 250 Hz segments extracted from real BrainVision payloads before synthetic event-locking.",
             "RAM/SRPI events and event-locked signals are synthetic additions needed to make all five MPC components testable.",
             "ds002547 has no true deep/rest design; synthetic awake/deep/rest labels use ds002547 self/other payloads plus ds003171 rest-state donors and are marked in the manifest.",
-            "ds006623 and ds002685 are intentionally excluded because local snapshots are incomplete/deferred.",
+            "ds006623 and ds002685 are excluded from this generator.",
         ],
     }
     _write_json(dataset_root / "manifest.json", manifest)
@@ -1599,8 +1642,7 @@ def _write_donor_report(inspections: dict[str, dict[str, Any]], manifests: list[
             for ds in ["ds003171", "ds002547", "ds005620", "ds005479", "ds004295", "ds002336"]
         },
         "limitations": [
-            "The package is deliberately compact for CI/MPC tests and is not a full OpenNeuro mirror.",
-            "Synthetic derivatives were generated only after source inspections read local payload files.",
+            "The package is compact and is not an OpenNeuro mirror.",
             "Incomplete/deferred ds006623 and ds002685 were not used as generation sources.",
         ],
     }
@@ -1625,14 +1667,28 @@ def _link_repo_paths() -> None:
 
 
 def main() -> int:
+    global SOURCE_ROOT
     parser = argparse.ArgumentParser(description="Generate real-data-derived synthetic CI validation datasets.")
     parser.add_argument("--seed", type=int, default=20260620)
     parser.add_argument("--skip-validation", action="store_true")
     parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument(
+        "--source-root",
+        default=None,
+        help=(
+            "Parent directory containing downloaded source datasets, for example "
+            "/data/openneuro_sources with ds003171, ds002547, and other dataset folders inside. "
+            "Defaults to IMPACT_SOURCE_ROOT, then IMPACT_SYNTH_ROOT/data/scratch."
+        ),
+    )
     args = parser.parse_args()
+    if args.source_root:
+        SOURCE_ROOT = Path(args.source_root).expanduser().resolve()
 
     if not SSD_ROOT.exists():
         raise FileNotFoundError(f"External SSD root not mounted: {SSD_ROOT}")
+    if not args.validate_only and not SOURCE_ROOT.exists():
+        raise FileNotFoundError(f"Source dataset root not found: {SOURCE_ROOT}")
     REPORTS_OUT.mkdir(parents=True, exist_ok=True)
     if args.validate_only:
         manifests = [_read_json(REPORTS_OUT / f"{dataset_id}_manifest.json") for dataset_id in TARGETS]
@@ -1642,6 +1698,7 @@ def main() -> int:
             {
                 "targets": [m["dataset_id"] for m in manifests],
                 "manifests": [str(REPORTS_OUT / f"{m['dataset_id']}_manifest.json") for m in manifests],
+                "source_root": str(SOURCE_ROOT),
                 "validation": validation,
                 "all_validated": bool(validation) and all(v.get("all_ready") and v.get("all_actual_metrics_positive") for v in validation.values()),
                 "synthetic": True,
@@ -1661,6 +1718,7 @@ def main() -> int:
     _write_json(
         REPORTS_OUT / "source_file_inspection_report.json",
         {
+            "source_root": str(SOURCE_ROOT),
             "inspections": {
                 ds: str(INSPECTION_DIR / f"{ds}_source_inspection.json")
                 for ds in inspections
@@ -1693,6 +1751,7 @@ def main() -> int:
         {
             "targets": [m["dataset_id"] for m in manifests],
             "manifests": [str(REPORTS_OUT / f"{m['dataset_id']}_manifest.json") for m in manifests],
+            "source_root": str(SOURCE_ROOT),
             "validation": validation,
             "all_validated": bool(validation) and all(v.get("all_ready") and v.get("all_actual_metrics_positive") for v in validation.values()),
             "synthetic": True,

@@ -2,9 +2,7 @@
 
 # IMPaCT Synergy Pipeline
 
-This repository contains the IMPaCT metric pipeline for EEG and fMRI data. It
-supports local runs, the browser dashboard, and distributed execution on HLRS
-Hunter.
+This repository contains the IMPaCT metric pipeline for EEG and fMRI data.
 
 The codebase is organized as a Python package under `src/impact_pipeline`, with
 `run_pipeline.py` as the main command-line entrypoint.
@@ -19,9 +17,6 @@ The codebase is organized as a Python package under `src/impact_pipeline`, with
 - `docs/synthetic_data.md`: synthetic validation dataset generation and validation notes
 - `data/managed/`: small managed reference files that are safe to version
 
-Generated outputs, local datasets, dashboard caches, and local license files are
-kept out of version control.
-
 ## Installation
 
 Create the conda environment:
@@ -29,12 +24,6 @@ Create the conda environment:
 ```bash
 conda env create -f environment.yml
 conda activate impact-synergy-clean
-```
-
-If the environment already exists:
-
-```bash
-conda env update -n impact-synergy-clean -f environment.yml --prune
 ```
 
 ## External Requirements
@@ -52,8 +41,6 @@ FreeSurfer license handling:
 - alternative: place your local license at `licenses/fs_license.txt`
 - a template is included at `licenses/fs_license.txt.example`
 
-The real license file is not versioned.
-
 ## Downloading Data
 
 Download OpenNeuro datasets with:
@@ -61,6 +48,21 @@ Download OpenNeuro datasets with:
 ```bash
 bash scripts/download_data.sh ds003171 2.0.1
 bash scripts/download_data.sh ds005620
+```
+
+To regenerate the synthetic validation datasets, download the required
+OpenNeuro source snapshots into a single local source root and pass that root to
+the inspection and generation commands:
+
+```bash
+export IMPACT_SOURCE_ROOT=/absolute/path/to/openneuro_sources
+
+bash scripts/download_data.sh ds003171 2.0.1 "$IMPACT_SOURCE_ROOT/ds003171"
+bash scripts/download_data.sh ds005620 1.0.0 "$IMPACT_SOURCE_ROOT/ds005620"
+bash scripts/download_data.sh ds002547 1.1.0 "$IMPACT_SOURCE_ROOT/ds002547"
+bash scripts/download_data.sh ds005479 1.1.1 "$IMPACT_SOURCE_ROOT/ds005479"
+bash scripts/download_data.sh ds004295 1.0.0 "$IMPACT_SOURCE_ROOT/ds004295"
+bash scripts/download_data.sh ds002336 2.0.2 "$IMPACT_SOURCE_ROOT/ds002336"
 ```
 
 Download atlas assets with:
@@ -77,12 +79,25 @@ missing components are not imputed.
 ## Synthetic Validation Datasets
 
 The repository can generate compact real-data-derived synthetic datasets for
-software validation. These are not empirical participant data. They are derived
-from inspected local OpenNeuro payload statistics, timing structures, and event
-templates so the full RAM, PDI, NAS, IIM, SRPI, and CI path can be tested
-without redistributing original participant-level payloads.
+software validation. They are derived from supported OpenNeuro source snapshots
+and exercise the full RAM, PDI, NAS, IIM, SRPI, and CI path without
+redistributing participant-level payloads.
 
-See `docs/synthetic_data.md` for generation, validation, and limitations.
+The archived synthetic validation package is available on Zenodo:
+https://doi.org/10.5281/zenodo.20786673.
+
+To reproduce generation, download the source snapshots listed above, then run:
+
+```bash
+export IMPACT_SYNTH_ROOT=/absolute/path/to/impact-synth-output
+conda run -n impact-synergy-clean python scripts/inspect_real_sources_for_synth.py \
+  --source-root "$IMPACT_SOURCE_ROOT" \
+  --output-dir "$IMPACT_SYNTH_ROOT/test_objects/real_derived_synth_completed/reports"
+conda run -n impact-synergy-clean python scripts/generate_real_derived_synth_completed.py \
+  --source-root "$IMPACT_SOURCE_ROOT"
+```
+
+See `docs/synthetic_data.md` for workflow details.
 
 ## Running The Pipeline Locally
 
@@ -243,22 +258,13 @@ conda run -n impact-synergy-clean pytest -q
 The repository also includes GitHub Actions CI and container definitions for
 Docker and Singularity-based setups.
 
-## Data Hygiene
-
-Dataset-derived files are not committed. This includes:
-
-- raw downloaded datasets
-- preprocessing outputs
-- runtime caches and checkpoints
-- synthetic validation runs and metric exports
-- dashboard registry/cache files
-- local FreeSurfer license files
-
-Keep patient or subject-data runtime outputs under ignored local data and output
-paths.
 
 ## Citation
 
 If you use the software, please cite the archived release listed in
 `CITATION.cff`. The DOI badge above points to the Zenodo record for the
 repository.
+
+If you use the synthetic validation datasets, please cite:
+Obiri-Yeboah, A. (2026). Synthetic validation dataset [Data set]. Zenodo.
+https://doi.org/10.5281/zenodo.20786673.

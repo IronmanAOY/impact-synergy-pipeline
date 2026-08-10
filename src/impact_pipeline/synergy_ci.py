@@ -254,7 +254,7 @@ def _resolve_pdi_kwargs(pdi_params, require_explicit):
     if pdi_params is None:
         if require_explicit:
             raise ValueError(
-                "Explicit PDI hyperparameters are required for paper-mode runs, "
+                "Explicit PDI hyperparameters are required for strict validation runs, "
                 "but pdi_params was None."
             )
         params = dict(PDI_PARAM_DEFAULTS)
@@ -266,7 +266,7 @@ def _resolve_pdi_kwargs(pdi_params, require_explicit):
         missing = [k for k in PDI_PARAM_KEYS if k not in params]
         if missing and require_explicit:
             raise ValueError(
-                "Explicit PDI hyperparameters are required for paper-mode runs. "
+                "Explicit PDI hyperparameters are required for strict validation runs. "
                 f"Missing keys: {missing}"
             )
         for k in missing:
@@ -583,7 +583,7 @@ def compute_synergy_ci(
 
     def _select_pdi_legacy_baseline_runs(subj, session_name):
         """
-        Legacy baseline policy for non-paper runs.
+        Baseline policy for permissive runs.
         Priority:
           1) same-session rest
           2) any subject-level rest

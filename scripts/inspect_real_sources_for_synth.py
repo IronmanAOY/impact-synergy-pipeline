@@ -30,7 +30,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from impact_pipeline.dataset_catalog import get_report_dataset, resolve_local_dataset_root
+from impact_pipeline.dataset_catalog import dataset_root_candidates, get_report_dataset
 
 
 DEFAULT_DATASETS = (
@@ -54,6 +54,7 @@ COMPLETE_DATASETS = {
 }
 INCOMPLETE_DATASETS = {"ds002685", "ds006623"}
 DEFAULT_SYNTH_ROOT = Path(os.environ.get("IMPACT_SYNTH_ROOT", "/Volumes/MPW_OT_AOY/impact-synergy-pipeline"))
+DEFAULT_SOURCE_ROOT = os.environ.get("IMPACT_SOURCE_ROOT")
 
 FMRI_EXTS = (".nii", ".nii.gz")
 EEG_EXTS = (".vhdr", ".set")
@@ -79,6 +80,55 @@ def _read_json(path: Path) -> dict[str, Any]:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return {}
+
+
+def _unique_paths(paths: list[Path]) -> list[Path]:
+    seen = set()
+    out = []
+    for path in paths:
+        expanded = path.expanduser()
+        key = str(expanded)
+        if key not in seen:
+            seen.add(key)
+            out.append(expanded)
+    return out
+
+
+def _source_dataset_candidates(dataset_id: str, repo_root: Path, source_root: Path | None) -> list[Path]:
+    candidates: list[Path] = []
+    if source_root is not None:
+        root = source_root.expanduser()
+        if dataset_id == "ds005620":
+            if root.name in {"ds005620", "ds005620_annex"}:
+                candidates.append(root)
+            candidates.extend(
+                [
+                    root / "ds005620_annex",
+                    root / "ds005620",
+                    root / "data" / "scratch" / "ds005620_annex",
+                    root / "data" / "scratch" / "ds005620",
+                    root / "data" / "ds005620",
+                ]
+            )
+        else:
+            if root.name == dataset_id:
+                candidates.append(root)
+            candidates.extend(
+                [
+                    root / dataset_id,
+                    root / "data" / "scratch" / dataset_id,
+                    root / "data" / dataset_id,
+                ]
+            )
+    candidates.extend(dataset_root_candidates(dataset_id, repo_root))
+    return _unique_paths(candidates)
+
+
+def _resolve_source_dataset_root(dataset_id: str, repo_root: Path, source_root: Path | None) -> Path | None:
+    for candidate in _source_dataset_candidates(dataset_id, repo_root, source_root):
+        if candidate.exists():
+            return candidate.resolve()
+    return None
 
 
 def _is_annex_placeholder(path: Path) -> bool:
@@ -416,21 +466,31 @@ def _read_set_header(path: Path) -> dict[str, Any]:
     return row
 
 
-def inspect_dataset(dataset_id: str, repo_root: Path, max_nifti: int, max_eeg: int) -> dict[str, Any]:
+def inspect_dataset(
+    dataset_id: str,
+    repo_root: Path,
+    max_nifti: int,
+    max_eeg: int,
+    source_root: Path | None = None,
+) -> dict[str, Any]:
     entry = get_report_dataset(dataset_id)
-    local_root = resolve_local_dataset_root(dataset_id, repo_root)
-    if dataset_id == "ds005620" and local_root is not None and local_root.name == "ds005620":
+    local_root = _resolve_source_dataset_root(dataset_id, repo_root, source_root)
+    if dataset_id == "ds005620" and source_root is None and local_root is not None and local_root.name == "ds005620":
         alt = repo_root / "data" / "scratch" / "ds005620_annex"
         if alt.exists():
             local_root = alt.resolve()
     out: dict[str, Any] = {
         "dataset_id": dataset_id,
         "catalog": entry.to_record() if entry is not None else None,
+        "configured_source_root": str(source_root) if source_root is not None else None,
+        "source_root_candidates": [
+            str(path) for path in _source_dataset_candidates(dataset_id, repo_root, source_root)
+        ],
         "local_root": str(local_root) if local_root else None,
         "available": bool(local_root and local_root.exists()),
         "marked_incomplete": bool(local_root and (local_root / "DOWNLOAD_INCOMPLETE.txt").exists()),
         "complete_snapshot_expected": dataset_id in COMPLETE_DATASETS,
-        "intentionally_excluded_incomplete": dataset_id in INCOMPLETE_DATASETS,
+        "excluded_incomplete": dataset_id in INCOMPLETE_DATASETS,
     }
     if not local_root or not local_root.exists():
         return out
@@ -440,7 +500,7 @@ def inspect_dataset(dataset_id: str, repo_root: Path, max_nifti: int, max_eeg: i
         out.update(
             {
                 "skipped_deep_inspection": True,
-                "skip_reason": "intentionally_excluded_incomplete_or_deferred_source",
+                "skip_reason": "incomplete_or_deferred_source",
                 "incomplete_marker": str(marker) if marker.exists() else None,
                 "incomplete_status_json": str(status_json) if status_json.exists() else None,
             }
@@ -592,27 +652,37 @@ def main() -> int:
         "--output-dir",
         default=str(DEFAULT_SYNTH_ROOT / "test_objects" / "real_derived_synth_completed" / "reports"),
     )
+    parser.add_argument(
+        "--source-root",
+        default=DEFAULT_SOURCE_ROOT,
+        help=(
+            "Parent directory containing downloaded OpenNeuro source folders. "
+            "If omitted, the script checks the repository data/scratch and data folders."
+        ),
+    )
     parser.add_argument("--max-nifti", type=int, default=36)
     parser.add_argument("--max-eeg", type=int, default=36)
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir).expanduser().resolve()
+    source_root = Path(args.source_root).expanduser().resolve() if args.source_root else None
     output_dir.mkdir(parents=True, exist_ok=True)
     all_rows = {}
     for dataset_id in args.datasets:
         print(f"inspect {dataset_id}", flush=True)
-        all_rows[dataset_id] = inspect_dataset(dataset_id, REPO_ROOT, args.max_nifti, args.max_eeg)
+        all_rows[dataset_id] = inspect_dataset(dataset_id, REPO_ROOT, args.max_nifti, args.max_eeg, source_root)
         (output_dir / f"{dataset_id}_source_inspection.json").write_text(
             json.dumps(all_rows[dataset_id], indent=2, sort_keys=True, default=_json_default),
             encoding="utf-8",
         )
     summary = {
+        "configured_source_root": str(source_root) if source_root is not None else None,
         "datasets": {
             ds: {
                 "available": row.get("available"),
                 "marked_incomplete": row.get("marked_incomplete"),
                 "complete_snapshot_expected": row.get("complete_snapshot_expected"),
-                "intentionally_excluded_incomplete": row.get("intentionally_excluded_incomplete"),
+                "excluded_incomplete": row.get("excluded_incomplete"),
                 "n_subjects": row.get("n_subjects"),
                 "tasks": row.get("tasks"),
                 "file_counts": row.get("file_counts"),
