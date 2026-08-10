@@ -1,7 +1,8 @@
 # Synthetic Validation Data
 
 This folder is reserved for synthetic validation datasets and outputs derived
-from them.
+from them. The same layout is used for the open archive and for locally
+generated synthetic datasets.
 
 Use it for:
 
@@ -17,5 +18,4 @@ Rules:
 - mixed-source CI analysis must preserve dataset-origin labels
 
 The dashboard and pipeline enforce this separation when a dataset is marked as
-synthetic. See `docs/synthetic_data.md` for real-data-derived synthetic dataset
-generation.
+synthetic. See `docs/synthetic_data.md` for archive and generation commands.

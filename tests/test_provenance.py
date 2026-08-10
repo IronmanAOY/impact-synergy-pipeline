@@ -16,6 +16,23 @@ def test_synthetic_provenance_uses_validation_output_root(tmp_path):
     assert prov.metric_bank_dataset_dir == (tmp_path / "test_objects" / "metric_bank" / "dummy_ds").resolve()
 
 
+def test_synthetic_provenance_can_use_external_root(tmp_path, monkeypatch):
+    external_root = tmp_path / "external"
+    monkeypatch.setenv("IMPACT_SYNTH_ROOT", str(external_root))
+
+    prov = resolve_dataset_provenance(
+        repo_root=tmp_path / "repo",
+        out_dir=external_root / "test_objects" / "runs" / "real_derived_synth_completed" / "ds003171",
+        dataset_id="ds003171",
+        data_origin="dummy",
+    )
+
+    assert prov.effective_out_dir == (
+        external_root / "test_objects" / "runs" / "real_derived_synth_completed" / "ds003171"
+    ).resolve()
+    assert prov.metric_bank_dataset_dir == (external_root / "test_objects" / "metric_bank" / "ds003171").resolve()
+
+
 def test_real_provenance_keeps_standard_output_layout(tmp_path):
     prov = resolve_dataset_provenance(
         repo_root=tmp_path,

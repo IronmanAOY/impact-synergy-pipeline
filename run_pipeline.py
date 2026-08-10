@@ -5,7 +5,6 @@ import argparse
 import logging
 import random
 import tempfile
-import copy
 import numpy as np
 import subprocess, os
 import pandas as pd
@@ -81,6 +80,86 @@ DATASET_CONFIGS = {
         "atlas_robustness": True,
         "supports_fmriprep": True,
         "supports_replication": True,
+        "iim_n_parts": None,
+        "iim_max_timepoints": None,
+        "iim_max_nodes": None,
+        "iim_max_mechanism_size": None,
+        "iim_max_purview_size": None,
+        "iim_parallel_workers": None,
+        "iim_memory_target_ratio": 0.90,
+        "iim_worker_mem_gb_estimate": 3.0,
+        "iim_cpu_oversub_factor": 3.0,
+        "iim_phase1_parallel_workers": None,
+        "iim_phase1_chunk_size": 8,
+        "iim_phase1_shared_memory": True,
+        "pdi_params": {
+            "bins": 10,
+            "weighted": True,
+            "normalize": False,
+            "clip_negative": True,
+            "stability_segments": 4,
+            "noise_penalty_kappa": 1.0,
+            "component_weights": (0.35, 0.25, 0.20, 0.20),
+            "ordinal_order": 3,
+            "multiscale_max_scale": 5,
+            "eps": 1e-12,
+        },
+        "pdi_require_explicit_params": True,
+        "pdi_require_strict_baseline": True,
+        "pdi_primary_endpoint": "anchor",
+        "nas_params": {
+            "zthr": 1.0,
+            "eps": 0.2,
+            "tau": 0.2,
+            "lambda_phase": 0.5,
+            "alpha": 0.20,
+            "beta": 0.16,
+            "gamma": 0.14,
+            "delta": 0.12,
+            "eta": 0.16,
+            "zeta": 0.12,
+            "rho": 0.10,
+            "bands": ((0.01, 0.10),),
+            "band_weights": (1.0,),
+            "window_len": 30,
+            "step_len": 15,
+            "max_triads": 5000,
+            "random_state": 0,
+            "workspace_nodes": None,
+            "workspace_quantile": 0.2,
+            "workspace_min_size": 4,
+            "directed_lag": 1,
+            "reverberation_lags": (2, 3, 4),
+            "baseline_ts": None,
+            "boost_against_baseline": False,
+            "normalize": True,
+        },
+        "srpi_params": {
+            "modality": "fmri",
+            "pre_window_sec": 2.0,
+            "response_lag_sec": 4.0,
+            "response_window_sec": 6.0,
+            "covariance_ridge": 1e-3,
+            "component_weights": (0.35, 0.25, 0.20, 0.20),
+            "min_events_per_class": 3,
+            "sample_reliability_tau": 4.0,
+            "eps": 1e-8,
+        },
+        "srpi_require_explicit_params": True,
+        "eeg_session_rules": None,
+    },
+    "ds002547": {
+        "modality": "fmri",
+        "bids_candidates": (
+            root / "data" / "scratch" / "ds002547",
+            root / "data" / "ds002547",
+        ),
+        "atlas": "schaefer400",
+        "sessions": ("awake", "deep"),
+        "condition": "selfother",
+        "atlas_robustness": False,
+        "supports_fmriprep": False,
+        "supports_replication": False,
         "iim_n_parts": None,
         "iim_max_timepoints": None,
         "iim_max_nodes": None,
@@ -234,24 +313,6 @@ DATASET_CONFIGS = {
         },
     },
 }
-
-DATASET_CONFIGS["ds002547"] = copy.deepcopy(DATASET_CONFIGS["ds003171"])
-DATASET_CONFIGS["ds002547"].update(
-    {
-        "modality": "fmri",
-        "bids_candidates": (
-            root / "data" / "scratch" / "ds002547",
-            root / "data" / "ds002547",
-        ),
-        "atlas": "schaefer400",
-        "sessions": ("awake", "deep"),
-        "condition": "selfother",
-        "atlas_robustness": False,
-        "supports_fmriprep": True,
-        "supports_replication": False,
-        "eeg_session_rules": None,
-    }
-)
 
 
 def _first_existing_path(*candidates):

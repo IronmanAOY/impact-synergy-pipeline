@@ -83,10 +83,22 @@ software validation. They are derived from supported OpenNeuro source snapshots
 and exercise the full RAM, PDI, NAS, IIM, SRPI, and CI path without
 redistributing participant-level payloads.
 
-The archived synthetic validation package is available on Zenodo:
-https://doi.org/10.5281/zenodo.20786673.
+Two setup paths are supported:
 
-To reproduce generation, download the source snapshots listed above, then run:
+- download the open archive at https://doi.org/10.5281/zenodo.20786673
+- regenerate the datasets locally from the OpenNeuro source snapshots listed above
+
+After downloading the archive, extract it so the selected root contains
+`test_objects/datasets/real_derived_synth_completed/` and
+`test_objects/runs/real_derived_synth_completed/`, then run:
+
+```bash
+export IMPACT_SYNTH_ROOT=/absolute/path/that/contains/test_objects
+conda run -n impact-synergy-clean python scripts/generate_real_derived_synth_completed.py \
+  --validate-only
+```
+
+To regenerate the datasets, download the source snapshots listed above, then run:
 
 ```bash
 export IMPACT_SYNTH_ROOT=/absolute/path/to/impact-synth-output
@@ -145,37 +157,43 @@ export IMPACT_HUNTER_SLURM_SETUP_FILE=/absolute/path/to/hunter_slurm_setup.sh
 The optional setup file is copied into generated `.sbatch` files and can contain
 site-specific `module load`, conda initialization, and temporary cache exports.
 
-Build a Hunter campaign:
+Build a Hunter campaign from an archived or generated synthetic dataset:
 
 ```bash
+export IMPACT_SYNTH_ROOT=/absolute/path/that/contains/test_objects
+export IMPACT_SYNTH_DATASET=ds003171
+
 conda run -n impact-synergy-clean python run_pipeline.py \
   --execution-mode hunter \
   --hardware-target hunter-apu \
   --hunter-stage build-campaign \
-  --dataset-id ds003171 \
-  --out-dir outputs/hunter
+  --data-origin dummy \
+  --dataset-id "$IMPACT_SYNTH_DATASET" \
+  --bids-root "$IMPACT_SYNTH_ROOT/test_objects/datasets/real_derived_synth_completed/$IMPACT_SYNTH_DATASET" \
+  --out-dir "$IMPACT_SYNTH_ROOT/test_objects/runs/real_derived_synth_completed/$IMPACT_SYNTH_DATASET" \
+  --mpc-metrics RAM PDI NAS IIM SRPI
 ```
 
-This command assumes `outputs/hunter/preprocessed/` is populated. Add
-`--run-preprocessing` and, if needed, `--bids-root /path/to/bids-root` when the
-campaign build should also create preprocessing outputs.
+Use `ds003171`, `ds002547`, or `ds005620` for `IMPACT_SYNTH_DATASET`. For raw
+OpenNeuro runs, add `--run-preprocessing` and set `--bids-root` to the local
+BIDS root.
 
 The campaign is written under:
 
 ```text
-outputs/hunter/cache/hunter_iim_campaign/
+<out-dir>/cache/hunter_iim_campaign/
 ```
 
 Slurm submission files are written under:
 
 ```text
-outputs/hunter/cache/hunter_iim_campaign/slurm/
+<out-dir>/cache/hunter_iim_campaign/slurm/
 ```
 
 Submit the generated campaign with:
 
 ```bash
-bash outputs/hunter/cache/hunter_iim_campaign/slurm/00_submit_all.sh
+bash <out-dir>/cache/hunter_iim_campaign/slurm/00_submit_all.sh
 ```
 
 Hardware selection is explicit. Use `--hardware-target cpu` for NumPy/SciPy CPU
@@ -265,6 +283,6 @@ If you use the software, please cite the archived release listed in
 `CITATION.cff`. The DOI badge above points to the Zenodo record for the
 repository.
 
-If you use the synthetic validation datasets, please cite:
+If you use the open synthetic validation archive, please cite:
 Obiri-Yeboah, A. (2026). Synthetic validation dataset [Data set]. Zenodo.
 https://doi.org/10.5281/zenodo.20786673.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -121,6 +122,7 @@ def resolve_dataset_provenance(
     out_dir: Path | str,
     dataset_id: str,
     data_origin=REAL_DATA_ORIGIN,
+    synthetic_root: Path | str | None = None,
 ) -> DatasetProvenance:
     root = Path(repo_root).resolve()
     requested = Path(out_dir).expanduser().resolve()
@@ -128,7 +130,10 @@ def resolve_dataset_provenance(
     origin = normalize_data_origin(data_origin)
     role = dataset_role_for_origin(origin)
     label = provenance_label_for_origin(origin)
-    scaffold = ensure_test_objects_scaffold(root)
+    synthetic_base = Path(
+        synthetic_root or os.environ.get("IMPACT_SYNTH_ROOT") or root
+    ).expanduser().resolve()
+    scaffold = ensure_test_objects_scaffold(synthetic_base)
 
     if origin == DUMMY_DATA_ORIGIN:
         base = requested

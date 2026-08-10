@@ -39,7 +39,7 @@ from impact_pipeline.run_synergy_ci import load_onsets
 from impact_pipeline.synergy_ci import compute_synergy_ci
 
 
-SSD_ROOT = Path(os.environ.get("IMPACT_SYNTH_ROOT", "/Volumes/MPW_OT_AOY/impact-synergy-pipeline"))
+SSD_ROOT = Path(os.environ.get("IMPACT_SYNTH_ROOT", REPO_ROOT))
 INSPECTION_DIR = SSD_ROOT / "test_objects" / "real_derived_synth_completed" / "reports"
 DATASETS_OUT = SSD_ROOT / "test_objects" / "datasets" / "real_derived_synth_completed"
 RUNS_OUT = SSD_ROOT / "test_objects" / "runs" / "real_derived_synth_completed"
@@ -1686,7 +1686,7 @@ def main() -> int:
         SOURCE_ROOT = Path(args.source_root).expanduser().resolve()
 
     if not SSD_ROOT.exists():
-        raise FileNotFoundError(f"External SSD root not mounted: {SSD_ROOT}")
+        raise FileNotFoundError(f"Synthetic output root not found: {SSD_ROOT}")
     if not args.validate_only and not SOURCE_ROOT.exists():
         raise FileNotFoundError(f"Source dataset root not found: {SOURCE_ROOT}")
     REPORTS_OUT.mkdir(parents=True, exist_ok=True)

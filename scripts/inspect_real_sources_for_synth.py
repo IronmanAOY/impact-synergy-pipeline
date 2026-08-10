@@ -53,7 +53,7 @@ COMPLETE_DATASETS = {
     "ds002336",
 }
 INCOMPLETE_DATASETS = {"ds002685", "ds006623"}
-DEFAULT_SYNTH_ROOT = Path(os.environ.get("IMPACT_SYNTH_ROOT", "/Volumes/MPW_OT_AOY/impact-synergy-pipeline"))
+DEFAULT_SYNTH_ROOT = Path(os.environ.get("IMPACT_SYNTH_ROOT", REPO_ROOT))
 DEFAULT_SOURCE_ROOT = os.environ.get("IMPACT_SOURCE_ROOT")
 
 FMRI_EXTS = (".nii", ".nii.gz")
