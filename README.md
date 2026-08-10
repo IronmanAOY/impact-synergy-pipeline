@@ -88,12 +88,17 @@ Two setup paths are supported:
 - download the open archive at https://doi.org/10.5281/zenodo.20786673
 - regenerate the datasets locally from the OpenNeuro source snapshots listed above
 
-After downloading the archive, extract it so the selected root contains
+The archive contains `impact-synergy-real-derived-synthetic-test-objects.tar.gz`,
+`release_manifest.json`, and `SHA256SUMS.txt`. After downloading it, verify and
+extract the tarball so the selected root contains
 `test_objects/datasets/real_derived_synth_completed/` and
-`test_objects/runs/real_derived_synth_completed/`, then run:
+`test_objects/runs/real_derived_synth_completed/`:
 
 ```bash
-export IMPACT_SYNTH_ROOT=/absolute/path/that/contains/test_objects
+export IMPACT_SYNTH_ROOT=/absolute/path/for/synthetic_package
+mkdir -p "$IMPACT_SYNTH_ROOT"
+shasum -a 256 -c SHA256SUMS.txt
+tar -xzf impact-synergy-real-derived-synthetic-test-objects.tar.gz -C "$IMPACT_SYNTH_ROOT"
 conda run -n impact-synergy-clean python scripts/generate_real_derived_synth_completed.py \
   --validate-only
 ```

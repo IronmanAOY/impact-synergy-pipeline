@@ -17,12 +17,21 @@ The open archive is available at:
 https://doi.org/10.5281/zenodo.20786673
 ```
 
-After downloading and extracting it, set `IMPACT_SYNTH_ROOT` to the directory
-that contains `test_objects/` and validate the package:
+It contains:
+
+- `impact-synergy-real-derived-synthetic-test-objects.tar.gz`
+- `release_manifest.json`
+- `SHA256SUMS.txt`
+
+After downloading it, set `IMPACT_SYNTH_ROOT` to the directory that will contain
+`test_objects/`, then verify, extract, and validate:
 
 ```bash
-export IMPACT_SYNTH_ROOT=/absolute/path/that/contains/test_objects
+export IMPACT_SYNTH_ROOT=/absolute/path/for/synthetic_package
 
+mkdir -p "$IMPACT_SYNTH_ROOT"
+shasum -a 256 -c SHA256SUMS.txt
+tar -xzf impact-synergy-real-derived-synthetic-test-objects.tar.gz -C "$IMPACT_SYNTH_ROOT"
 conda run -n impact-synergy-clean python scripts/generate_real_derived_synth_completed.py \
   --validate-only
 ```
